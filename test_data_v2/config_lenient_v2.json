@@ -1,0 +1,12 @@
+{
+  "fields": [
+    { "path": "full_name", "type": "string" },
+    { "path": "primary_email", "from": "emails[0]", "type": "string" },
+    { "path": "headline", "type": "string" },
+    { "path": "years_experience", "type": "number" },
+    { "path": "skills", "from": "skills[].name", "type": "string[]", "normalize": "canonical" }
+  ],
+  "include_confidence": false,
+  "include_provenance": false,
+  "on_missing": "omit"
+}

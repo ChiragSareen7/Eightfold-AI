@@ -1,0 +1,24 @@
+Priya Nair
+priya.nair@outlook.com
++91 98765 22233
+Chennai, India
+
+SUMMARY
+Product Analyst with a strong background in data-driven decision making.
+
+EXPERIENCE
+
+Freshworks - Product Analyst
+January 2024 - Present
+Analyzing user behavior data to inform product roadmap decisions.
+
+Zomato - Business Analyst
+March 2021 - December 2023
+Worked on demand forecasting models and pricing strategy analysis.
+
+EDUCATION
+Loyola College Chennai - B.Com
+2020
+
+SKILLS
+SQL, Excel, Tableau, Python, A/B Testing

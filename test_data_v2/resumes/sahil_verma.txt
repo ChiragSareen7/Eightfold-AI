@@ -1,0 +1,23 @@
+Sahil Verma
+sahil.verma@gmail.com
+9876513013
+Chandigarh, India
+
+PROFILE
+Software Development Engineer with full-stack experience.
+
+EXPERIENCE
+Quark Software - SDE-2
+February 2024 - Present
+Building internal tools for desktop publishing software products.
+
+Infosys - SDE-1
+August 2022 - January 2024
+Worked on enterprise Java applications for a banking client.
+
+EDUCATION
+PEC Chandigarh - B.E. Computer Science
+2022
+
+SKILLS
+Java, Spring Boot, React, MySQL, REST APIs

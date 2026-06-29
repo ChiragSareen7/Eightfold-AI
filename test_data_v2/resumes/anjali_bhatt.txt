@@ -1,0 +1,19 @@
+Anjali Bhatt
+anjali.bhatt@gmail.com
++1 (415) 555-0182
+San Francisco, CA, USA
+
+PROFILE
+Software Engineer working on distributed payments infrastructure.
+
+EXPERIENCE
+Stripe - Software Engineer
+March 2021 - Present
+Building distributed systems for global payment processing.
+
+EDUCATION
+UC Berkeley - B.S. Computer Science
+2021
+
+SKILLS
+Go, Distributed Systems, Kubernetes, PostgreSQL, gRPC

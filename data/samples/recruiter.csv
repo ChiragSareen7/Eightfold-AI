@@ -1,0 +1,5 @@
+name,email,phone,current_company,title,years_experience,resume_path
+Jane Doe,jane.doe@example.com,+14155551234,Acme Corp,Senior Software Engineer,8,jane_doe.docx
+John Smith,john.smith@example.com,(415) 555-9876,Globex Inc,Product Manager,5,john_smith.docx
+Alice Johnson,alice.johnson@example.com,+442071234567,Initech,Data Scientist,6,alice_johnson.docx
+Bob Williams,bob.williams@example.com,+14085559999,TechCorp Inc,Full Stack Developer,7,bob_williams.txt

@@ -1,0 +1,19 @@
+Aman Gupta
+aman.gupta@gmail.com
++91 9812345603
+Delhi, India
+
+PROFILE
+QA Engineer with relevant industry experience.
+
+EXPERIENCE
+Flipkart - QA Engineer
+August 2023 - Present
+Contributing to core team deliverables and ongoing projects.
+
+EDUCATION
+DTU Delhi - B.E. Computer Science
+2023
+
+SKILLS
+Selenium, Python, Pytest, CI/CD

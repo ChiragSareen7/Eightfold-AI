@@ -1,0 +1,19 @@
+Rahul Chawla
+rahul.chawla@gmail.com
++91 9812345611
+Gurugram, India
+
+PROFILE
+Voice AI Engineer with relevant industry experience.
+
+EXPERIENCE
+Yellow.ai - Voice AI Engineer
+March 2024 - Present
+Contributing to core team deliverables and ongoing projects.
+
+EDUCATION
+NSUT Delhi - B.Tech Computer Science
+2023
+
+SKILLS
+Python, Speech Recognition, NLP, FastAPI

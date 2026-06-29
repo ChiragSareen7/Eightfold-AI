@@ -1,0 +1,18 @@
+candidate_ref,name,email,phone,current_company,title,years_experience,resume_path
+D001,Nikhil Bansal,nikhil.b@gmail.com,+91 9876500001,Paytm,Senior SDE,8,resumes/nikhil_bansal.txt
+D002,Rashida Ali,rashida.ali@gmail.com,9876500002,Tech Mahindra,QA Lead,5,resumes/empty_resume.txt
+D003,Suresh Pillai,suresh.pillai@gmail.com,9876500003,Capgemini,System Admin,6,resumes/corrupted_resume.txt
+D004,Ananya Sharma,ananya.work@gmail.com,9876500004,Byju's,Content Strategist,3,resumes/ananya_sharma.txt
+D005,,,,,,,
+D006,Vivek Choudhary,vivek.choudhary@gmail.com,9876500006,Larsen & Toubro,Civil Engineer,10,
+D007,Mohammed Iqbal,m.iqbal@gmail.com,9876500007,Genpact,Operations Manager,7,resumes/mohammed_iqbal.txt
+D008,Mohammad Iqbal,mohd.iqbal.alt@gmail.com,9876500008,Genpact,Ops Manager,7,resumes/mohammad_iqbal.txt
+D009,Tanvi Desai,tanvi.desai@gmail.com,9876500009,Nykaa,Marketing Manager,4,resumes/tanvi_desai.txt
+D010,Yusuf Khan,yusuf.khan@gmail.com,9876500010,Deloitte,Consultant,5,resumes/yusuf_khan.txt
+D011,Riya Kapoor,riya.kapoor@gmail.com,9876500011,Startup Labs,Founder,2,resumes/riya_kapoor.txt
+D012,Devika Pillai,devika.pillai@gmail.com,9876500012,Self-employed,Freelancer,0,resumes/devika_pillai.txt
+D013,Sahil Verma,sahil.verma@gmail.com,9876500013,Infosys,SDE-2,4,resumes/sahil_verma.txt
+D014,Anjali Bhatt,anjali.bhatt@gmail.com,+1-415-555-0182,Stripe,Software Engineer,5,resumes/anjali_bhatt.txt
+D015,Gaurav Saxena,gaurav.saxena@gmail.com,9876500015,Wipro,Backend Developer,3,resumes/gaurav_saxena.txt
+D016,Komal Rathi,komal.rathi@gmail.com,9876500016,Tata Consultancy Services,SDE-1,2,resumes/komal_rathi.txt
+D017,Aditya Joshi,aditya.joshi@gmail.com,9876500017,Mindtree,Software Engineer,3,resumes/aditya_joshi.txt

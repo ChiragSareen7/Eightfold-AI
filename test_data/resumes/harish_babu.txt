@@ -1,0 +1,19 @@
+Harish Babu
+harish.babu@gmail.com
++91 9812345605
+Chennai, India
+
+PROFILE
+DevOps Engineer with relevant industry experience.
+
+EXPERIENCE
+Cognizant - DevOps Engineer
+March 2022 - Present
+Contributing to core team deliverables and ongoing projects.
+
+EDUCATION
+SSN College - B.E. Computer Science
+2021
+
+SKILLS
+Docker, Kubernetes, Jenkins, Terraform

@@ -1,0 +1,19 @@
+Komal Rathi
+komal.rathi@gmail.com
++91 9876500016
+Indore, India
+
+PROFILE
+SDE-1 with relevant industry experience.
+
+EXPERIENCE
+Tata Consultancy Services - SDE-1
+August 2024 - Present
+Contributing to core team deliverables and ongoing projects.
+
+EDUCATION
+IET DAVV - B.E. Computer Science
+2024
+
+SKILLS
+Python, Django, PostgreSQL, Git

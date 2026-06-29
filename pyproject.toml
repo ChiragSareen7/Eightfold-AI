@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "candidate-transformer"
+version = "0.1.0"
+description = "Eightfold take-home: canonical candidate profile pipeline"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "phonenumbers>=8.13.0",
+    "pdfplumber>=0.11.0",
+    "python-docx>=1.1.0",
+    "rapidfuzz>=3.6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+webapp = [
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.29.0",
+    "python-multipart>=0.0.9",
+    "httpx2>=0.28.0",
+]
+
+[project.scripts]
+candidate-transformer = "pipeline.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pipeline*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

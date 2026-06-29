@@ -1,0 +1,28 @@
+Bob Williams
+Full Stack Developer
+
+bob.williams@example.com | +14085559999
+San Jose, CA
+https://github.com/bobwilliams
+https://linkedin.com/in/bobwilliams
+
+Experience
+
+Full Stack Developer
+TechCorp Inc
+Mar 2019 - Present
+Built REST APIs with Python and Node.js. Led migration to React frontend.
+
+Junior Developer
+Startup Co
+Jan 2017 - Feb 2019
+Developed features in JavaScript and Python.
+
+Education
+
+UC Davis
+B.S. Computer Science
+2016
+
+Skills
+Python, JavaScript, React, Node.js, PostgreSQL, Docker, Git

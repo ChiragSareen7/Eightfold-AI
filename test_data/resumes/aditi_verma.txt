@@ -1,0 +1,19 @@
+Aditi Verma
+aditi.verma@gmail.com | +91 98765 11111 | Bengaluru, India
+linkedin.com/in/aditiverma | github.com/aditiverma
+
+HEADLINE
+AI Engineer passionate about building reliable LLM systems
+
+EXPERIENCE
+Yellow.ai — AI Engineer
+March 2023 - Present
+Built production-grade conversational AI pipelines for enterprise clients,
+reducing response latency by 40%.
+
+SKILLS
+Python, FastAPI, LangChain, Docker, AWS, SQL
+
+EDUCATION
+Chitkara University — B.E. Computer Science Engineering
+2027

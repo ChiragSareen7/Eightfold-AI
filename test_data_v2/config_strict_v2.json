@@ -1,0 +1,17 @@
+{
+  "fields": [
+    { "path": "full_name", "type": "string", "required": true },
+    { "path": "primary_email", "from": "emails[0]", "type": "string", "required": true },
+    { "path": "all_emails", "from": "emails", "type": "string[]" },
+    { "path": "phone", "from": "phones[0]", "type": "string", "normalize": "E164", "required": true },
+    { "path": "all_phones", "from": "phones", "type": "string[]" },
+    { "path": "country", "from": "location.country", "type": "string", "normalize": "ISO-3166-alpha2" },
+    { "path": "current_company", "from": "experience[0].company", "type": "string" },
+    { "path": "years_experience", "type": "number", "required": true },
+    { "path": "skills", "from": "skills[].name", "type": "string[]", "normalize": "canonical" },
+    { "path": "education", "type": "object[]" }
+  ],
+  "include_confidence": true,
+  "include_provenance": true,
+  "on_missing": "error"
+}

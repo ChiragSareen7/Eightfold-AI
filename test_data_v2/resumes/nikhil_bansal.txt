@@ -1,0 +1,23 @@
+Nikhil Bansal Sharma
+nikhil.b@gmail.com
+Phone: 9876511111
+Gurugram, India
+
+PROFILE
+Senior Software Development Engineer with deep backend expertise.
+
+EXPERIENCE
+Paytm - Senior SDE
+April 2017 - Present
+Leading backend infrastructure projects for the payments platform.
+
+Snapdeal - SDE
+June 2014 - March 2017
+Worked on catalog and search systems.
+
+EDUCATION
+NIT Warangal - B.Tech Computer Science
+2014
+
+SKILLS
+Java, Kafka, Microservices, AWS, System Design

@@ -1,0 +1,19 @@
+Aditya Joshi
+aditya.joshi@gmail.com
++91 9876500017
+Pune, India
+
+PROFILE
+Software Engineer with relevant industry experience.
+
+EXPERIENCE
+Mindtree - Software Engineer
+January 2023 - Present
+Contributing to core team deliverables and ongoing projects.
+
+EDUCATION
+COEP Pune - B.Tech Computer Science
+2022
+
+SKILLS
+Java, Spring, MySQL, Docker

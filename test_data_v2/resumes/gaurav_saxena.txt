@@ -1,0 +1,20 @@
+Gaurav Saxena
+gaurav.saxena@gmail.com
+9876515015
+Indore, India
+
+PROFILE
+Backend Developer with experience in API development and cloud deployment.
+
+EXPERIENCE
+Wipro - Backend Developer
+April 2023 - Present
+Developing and maintaining REST APIs for an enterprise client.
+
+EDUCATION
+IET DAVV Indore - B.E. Computer Science
+2022
+
+SKILLS
+Python, ,, Django, ----, REST APIs, see resume for full list, AWS,
+n/a, SQL, ###, also good with people

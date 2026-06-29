@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Candidate Transformer · Eightfold</title>
+<style>
+/* ── Design tokens ─────────────────────────────────────────── */
+:root{
+  --bg:#f0f2f5;
+  --surface:#fff;
+  --border:#e2e8f0;
+  --text:#1a202c;
+  --muted:#64748b;
+  --accent:#6366f1;
+  --accent-hover:#4f46e5;
+  --accent-soft:#eef2ff;
+  --green:#16a34a;--green-bg:#f0fdf4;
+  --yellow:#d97706;--yellow-bg:#fffbeb;
+  --red:#dc2626;--red-bg:#fef2f2;
+  --radius:12px;
+  --sidebar:340px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+
+/* ── Layout ─────────────────────────────────────────────────── */
+.app{display:flex;height:100vh;overflow:hidden;}
+
+/* Sidebar */
+.sidebar{
+  width:var(--sidebar);flex-shrink:0;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sidebar-header{
+  padding:18px 20px 14px;border-bottom:1px solid var(--border);
+}
+.sidebar-header h1{font-size:1rem;font-weight:700;}
+.sidebar-header p{font-size:0.75rem;color:var(--muted);margin-top:3px;}
+
+.sidebar-body{flex:1;overflow-y:auto;padding:16px 16px 0;}
+
+/* Main panel */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{
+  padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.topbar h2{font-size:0.9rem;font-weight:600;flex:1;}
+.tab-bar{display:flex;gap:4px;}
+.tab-btn{
+  padding:5px 14px;border:1px solid var(--border);border-radius:20px;
+  background:transparent;font-size:0.78rem;cursor:pointer;color:var(--muted);
+  transition:all .15s;
+}
+.tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.tab-btn:hover:not(.active){background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
+
+.main-body{flex:1;overflow:auto;padding:24px;}
+
+/* ── Form sections ───────────────────────────────────────────── */
+.form-section{margin-bottom:16px;}
+.form-label{
+  font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:6px;
+}
+.required-dot{width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block;}
+
+/* Drop zone */
+.drop-zone{
+  border:2px dashed var(--border);border-radius:10px;
+  padding:20px 16px;text-align:center;cursor:pointer;
+  transition:all .15s;background:#fafafa;
+  position:relative;
+}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--accent-soft);}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.drop-zone .dz-icon{font-size:1.6rem;margin-bottom:6px;}
+.drop-zone .dz-text{font-size:0.78rem;color:var(--muted);}
+.drop-zone .dz-files{margin-top:8px;font-size:0.75rem;color:var(--text);font-weight:500;}
+
+.file-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;background:var(--accent-soft);color:var(--accent);
+  border-radius:20px;font-size:0.72rem;margin:2px;
+}
+.file-chip .remove{cursor:pointer;font-size:0.8rem;color:var(--muted);margin-left:2px;}
+.file-chip .remove:hover{color:var(--red);}
+
+/* Config editor */
+.config-tabs{display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--border);}
+.cfg-tab{
+  padding:6px 12px;font-size:0.75rem;cursor:pointer;color:var(--muted);
+  border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;
+}
+.cfg-tab.active{color:var(--accent);border-color:var(--accent);font-weight:600;}
+.config-editor{
+  width:100%;min-height:130px;max-height:260px;padding:10px;
+  font-family:"SF Mono",Consolas,monospace;font-size:0.72rem;line-height:1.6;
+  border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;
+  resize:vertical;outline:none;background:#fafafa;color:var(--text);
+}
+.config-editor:focus{border-color:var(--accent);background:#fff;}
+.config-status{font-size:0.7rem;margin-top:4px;min-height:14px;}
+.config-status.ok{color:var(--green);}
+.config-status.err{color:var(--red);}
+
+/* Buttons */
+.run-btn{
+  width:100%;padding:11px;background:var(--accent);color:#fff;
+  border:none;border-radius:10px;font-size:0.88rem;font-weight:600;
+  cursor:pointer;transition:background .15s;margin-top:4px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.run-btn:hover{background:var(--accent-hover);}
+.run-btn:disabled{background:#a5b4fc;cursor:not-allowed;}
+.sample-btn{
+  width:100%;padding:8px;background:transparent;color:var(--muted);
+  border:1px solid var(--border);border-radius:10px;font-size:0.78rem;
+  cursor:pointer;transition:all .15s;margin-top:6px;
+}
+.sample-btn:hover{background:var(--bg);color:var(--accent);border-color:var(--accent);}
+
+.sidebar-footer{padding:12px 16px 16px;}
+
+/* ── Status / error bar ──────────────────────────────────────── */
+.status-bar{
+  padding:8px 24px;font-size:0.78rem;
+  display:none;align-items:center;gap:8px;
+  border-bottom:1px solid var(--border);
+}
+.status-bar.info{background:#eff6ff;color:#1d4ed8;display:flex;}
+.status-bar.error{background:var(--red-bg);color:var(--red);display:flex;}
+.status-bar.success{background:var(--green-bg);color:var(--green);display:flex;}
+.status-bar .close{margin-left:auto;cursor:pointer;opacity:.6;}
+
+/* ── Empty/loading states ────────────────────────────────────── */
+.empty-state{
+  text-align:center;padding:80px 32px;color:var(--muted);
+}
+.empty-state .big-icon{font-size:3rem;margin-bottom:14px;}
+.empty-state h3{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:6px;}
+.empty-state p{font-size:0.83rem;line-height:1.7;}
+
+.spinner{
+  width:18px;height:18px;border:2px solid rgba(255,255,255,.4);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin .7s linear infinite;display:none;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── Profiles grid ───────────────────────────────────────────── */
+.profiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;}
+
+/* ── Profile card ────────────────────────────────────────────── */
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;transition:box-shadow .15s;
+}
+.card:hover{box-shadow:0 4px 20px rgba(0,0,0,.07);}
+
+.card-header{
+  padding:18px 18px 14px;
+  background:linear-gradient(135deg,#f8fafc 0%,#fff 100%);
+  border-bottom:1px solid var(--border);
+}
+.card-header .name-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.card-header h2{font-size:1.05rem;font-weight:700;}
+.card-header .hl{font-size:0.78rem;color:var(--muted);margin-top:3px;}
+
+.score-ring{
+  flex-shrink:0;width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.72rem;font-weight:700;border:3px solid transparent;
+}
+
+.meta-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.mchip{
+  display:flex;align-items:center;gap:4px;
+  font-size:0.74rem;color:var(--muted);
+}
+.mchip a{color:var(--accent);text-decoration:none;}
+.mchip a:hover{text-decoration:underline;}
+.raw-phone{color:var(--yellow);font-size:0.68rem;}
+
+.id-pill{
+  font-size:0.65rem;font-family:monospace;background:#f1f5f9;
+  color:var(--muted);padding:2px 8px;border-radius:20px;
+  display:inline-block;margin-top:8px;word-break:break-all;
+}
+
+.card-body{padding:14px 18px;display:flex;flex-direction:column;gap:12px;}
+
+.sec-title{
+  font-size:0.68rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--muted);margin-bottom:6px;
+}
+
+/* confidence bar */
+.cbar-wrap{display:flex;align-items:center;gap:6px;margin-top:4px;}
+.cbar-bg{flex:1;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;}
+.cbar-fill{height:100%;border-radius:2px;}
+.cval{font-size:0.68rem;color:var(--muted);width:28px;text-align:right;}
+
+/* skills */
+.skills-wrap{display:flex;flex-wrap:wrap;gap:5px;}
+.skill-tag{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px 3px 7px;
+  background:var(--accent-soft);color:var(--accent);
+  border-radius:20px;font-size:0.75rem;font-weight:500;cursor:default;
+}
+.cdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+/* experience */
+.exp-item{margin-bottom:8px;}
+.exp-item:last-child{margin-bottom:0;}
+.exp-title{font-size:0.85rem;font-weight:600;}
+.exp-meta{font-size:0.74rem;color:var(--muted);margin-top:1px;}
+.current-badge{
+  display:inline-block;font-size:0.65rem;font-weight:600;
+  background:var(--green-bg);color:var(--green);padding:1px 7px;
+  border-radius:20px;margin-left:5px;vertical-align:middle;
+}
+.exp-summary{font-size:0.75rem;color:#475569;margin-top:3px;line-height:1.5;}
+
+/* education */
+.edu-inst{font-size:0.85rem;font-weight:600;}
+.edu-deg{font-size:0.75rem;color:var(--muted);}
+
+/* disagree */
+.disagree-badge{
+  font-size:0.68rem;background:var(--yellow-bg);color:#92400e;
+  padding:1px 7px;border-radius:20px;display:inline-block;margin-left:6px;
+}
+
+/* provenance */
+details summary{
+  font-size:0.73rem;font-weight:600;color:var(--muted);
+  cursor:pointer;user-select:none;list-style:none;
+  display:flex;align-items:center;gap:5px;padding:4px 0;
+}
+details summary::-webkit-details-marker{display:none;}
+details summary::before{content:"▶";font-size:0.58rem;transition:transform .15s;}
+details[open] summary::before{transform:rotate(90deg);}
+.prov-table{width:100%;border-collapse:collapse;font-size:0.72rem;margin-top:6px;}
+.prov-table th{
+  text-align:left;padding:4px 6px;background:#f8fafc;
+  color:var(--muted);font-size:0.65rem;text-transform:uppercase;letter-spacing:.04em;
+}
+.prov-table td{padding:4px 6px;border-top:1px solid var(--border);}
+.prov-table code{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:0.7rem;}
+
+/* ── Raw JSON tab ─────────────────────────────────────────────── */
+.json-view{
+  background:#1e293b;color:#e2e8f0;border-radius:10px;
+  padding:18px;font-family:"SF Mono",Consolas,monospace;
+  font-size:0.76rem;line-height:1.7;overflow:auto;white-space:pre;
+  max-height:70vh;
+}
+.json-toolbar{
+  display:flex;align-items:center;gap:10px;margin-bottom:12px;
+}
+.copy-btn{
+  padding:5px 14px;border:1px solid var(--border);border-radius:8px;
+  background:var(--surface);font-size:0.78rem;cursor:pointer;
+}
+.copy-btn:hover{background:var(--accent-soft);color:var(--accent);}
+
+/* ── Scrollbar ─────────────────────────────────────────────────── */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media(max-width:768px){
+  .sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border);}
+  .app{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>🔬 Candidate Transformer</h1>
+      <p>Eightfold take-home pipeline tester</p>
+    </div>
+
+    <div class="sidebar-body">
+
+      <!-- CSV upload -->
+      <div class="form-section">
+        <div class="form-label"><span class="required-dot"></span> Recruiter CSV</div>
+        <div class="drop-zone" id="csv-zone">
+          <input type="file" id="csv-input" accept=".csv" />
+          <div class="dz-icon">📋</div>
+          <div class="dz-text">Drop CSV or click to browse</div>
+          <div class="dz-files" id="csv-files"></div>
+        </div>
+      </div>
+
+      <!-- Resume upload -->
+      <div class="form-section">
+        <div class="form-label"><span class="required-dot"></span> Resumes (PDF / DOCX)</div>
+        <div class="drop-zone" id="resume-zone">
+          <input type="file" id="resume-input" accept=".pdf,.docx,.doc,.txt" multiple />
+          <div class="dz-icon">📄</div>
+          <div class="dz-text">Drop resumes or click to browse<br><span style="font-size:0.7rem;opacity:.7">PDF · DOCX · TXT</span></div>
+          <div class="dz-files" id="resume-files"></div>
+        </div>
+      </div>
+
+      <!-- Config -->
+      <div class="form-section">
+        <div class="form-label">Projection Config <span style="font-weight:400;font-style:italic;color:var(--muted)">(optional)</span></div>
+        <div class="config-tabs">
+          <div class="cfg-tab active" data-tab="default" onclick="loadPreset('default',this)">Default</div>
+          <div class="cfg-tab" data-tab="custom" onclick="loadPreset('custom',this)">Custom</div>
+          <div class="cfg-tab" data-tab="edit" onclick="activateCfgTab(this)">Edit</div>
+          <div class="cfg-tab" data-tab="upload" onclick="activateCfgTab(this)">Upload</div>
+        </div>
+        <textarea class="config-editor" id="config-editor" spellcheck="false" oninput="validateConfig()"></textarea>
+        <div style="display:none">
+          <input type="file" id="config-upload-input" accept=".json" onchange="loadConfigFile(this)"/>
+        </div>
+        <div class="config-status" id="config-status"></div>
+      </div>
+
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="run-btn" id="run-btn" onclick="runPipeline()">
+        <div class="spinner" id="spinner"></div>
+        <span id="run-label">▶ Run Pipeline</span>
+      </button>
+      <button class="sample-btn" onclick="runOnSamples()">🗂 Run on built-in sample data</button>
+    </div>
+  </aside>
+
+  <!-- ── Main panel ─────────────────────────────────────────── -->
+  <div class="main">
+    <div class="topbar">
+      <h2 id="results-heading">Results</h2>
+      <div class="tab-bar" id="view-tabs" style="display:none">
+        <button class="tab-btn active" onclick="switchView('cards',this)">Cards</button>
+        <button class="tab-btn" onclick="switchView('json',this)">Raw JSON</button>
+      </div>
+    </div>
+
+    <div class="status-bar" id="status-bar">
+      <span id="status-msg"></span>
+      <span class="close" onclick="closeStatus()">✕</span>
+    </div>
+
+    <div class="main-body" id="main-body">
+      <div class="empty-state">
+        <div class="big-icon">🧬</div>
+        <h3>No profiles yet</h3>
+        <p>Upload a recruiter CSV and at least one resume,<br>then click <strong>Run Pipeline</strong>.<br><br>
+        Or click <strong>Run on built-in sample data</strong> to try<br>the three pre-generated sample candidates.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────
+let csvFile = null;
+let resumeFiles = [];
+let currentView = 'cards';
+let lastResults = null;
+
+// ── File inputs ────────────────────────────────────────────────
+const csvInput = document.getElementById('csv-input');
+const resumeInput = document.getElementById('resume-input');
+
+csvInput.addEventListener('change', () => {
+  csvFile = csvInput.files[0] || null;
+  renderCsvChip();
+});
+
+resumeInput.addEventListener('change', () => {
+  const added = Array.from(resumeInput.files);
+  added.forEach(f => {
+    if (!resumeFiles.find(x => x.name === f.name)) resumeFiles.push(f);
+  });
+  renderResumeChips();
+});
+
+function renderCsvChip() {
+  const el = document.getElementById('csv-files');
+  el.innerHTML = csvFile
+    ? `<span class="file-chip">📋 ${esc(csvFile.name)}<span class="remove" onclick="removeCsv()">✕</span></span>`
+    : '';
+}
+
+function removeCsv() {
+  csvFile = null;
+  csvInput.value = '';
+  renderCsvChip();
+}
+
+function renderResumeChips() {
+  const el = document.getElementById('resume-files');
+  el.innerHTML = resumeFiles.map((f, i) =>
+    `<span class="file-chip">📄 ${esc(f.name)}<span class="remove" onclick="removeResume(${i})">✕</span></span>`
+  ).join('');
+}
+
+function removeResume(i) {
+  resumeFiles.splice(i, 1);
+  renderResumeChips();
+}
+
+// drag-over style
+['csv-zone','resume-zone'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag-over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drag-over'); });
+});
+
+// ── Config presets ────────────────────────────────────────────
+const cfgEditor = document.getElementById('config-editor');
+
+async function loadPreset(name, tabEl) {
+  activateCfgTab(tabEl);
+  try {
+    const r = await fetch(`/api/config/${name}`);
+    if (!r.ok) throw new Error(await r.text());
+    const cfg = await r.json();
+    cfgEditor.value = JSON.stringify(cfg, null, 2);
+    validateConfig();
+  } catch(e) {
+    showStatus('error', `Could not load preset: ${e.message}`);
+  }
+}
+
+function activateCfgTab(el) {
+  document.querySelectorAll('.cfg-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (el.dataset.tab === 'upload') {
+    document.getElementById('config-upload-input').click();
+  }
+}
+
+function loadConfigFile(input) {
+  const f = input.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    cfgEditor.value = e.target.result;
+    validateConfig();
+  };
+  r.readAsText(f);
+}
+
+function validateConfig() {
+  const st = document.getElementById('config-status');
+  const raw = cfgEditor.value.trim();
+  if (!raw) { st.textContent = ''; return true; }
+  try {
+    JSON.parse(raw);
+    st.textContent = '✓ valid JSON';
+    st.className = 'config-status ok';
+    return true;
+  } catch(e) {
+    st.textContent = '✗ ' + e.message;
+    st.className = 'config-status err';
+    return false;
+  }
+}
+
+// Load default preset on page load
+window.addEventListener('DOMContentLoaded', () => {
+  loadPreset('default', document.querySelector('.cfg-tab[data-tab="default"]'));
+});
+
+// ── Status bar ─────────────────────────────────────────────────
+function showStatus(type, msg) {
+  const bar = document.getElementById('status-bar');
+  bar.className = `status-bar ${type}`;
+  document.getElementById('status-msg').textContent = msg;
+}
+function closeStatus() {
+  document.getElementById('status-bar').className = 'status-bar';
+}
+
+// ── Run pipeline ───────────────────────────────────────────────
+async function runPipeline() {
+  if (!csvFile) return showStatus('error', 'Please upload a CSV file first.');
+  if (!resumeFiles.length) return showStatus('error', 'Please upload at least one resume.');
+  const cfgRaw = cfgEditor.value.trim();
+  if (cfgRaw && !validateConfig()) return showStatus('error', 'Fix the config JSON before running.');
+
+  setRunning(true);
+  closeStatus();
+
+  const fd = new FormData();
+  fd.append('csv_file', csvFile, csvFile.name);
+  resumeFiles.forEach(f => fd.append('resume_files', f, f.name));
+  if (cfgRaw) fd.append('config_json', cfgRaw);
+
+  try {
+    const r = await fetch('/api/run', { method: 'POST', body: fd });
+    const data = await r.json();
+    handleResult(data);
+  } catch(e) {
+    showStatus('error', 'Network error: ' + e.message);
+  } finally {
+    setRunning(false);
+  }
+}
+
+async function runOnSamples() {
+  const cfgRaw = cfgEditor.value.trim();
+  if (cfgRaw && !validateConfig()) return showStatus('error', 'Fix the config JSON before running.');
+
+  setRunning(true);
+  closeStatus();
+
+  const fd = new FormData();
+  if (cfgRaw) fd.append('config_json', cfgRaw);
+
+  try {
+    const r = await fetch('/api/run/samples', { method: 'POST', body: fd });
+    const data = await r.json();
+    handleResult(data);
+  } catch(e) {
+    showStatus('error', 'Network error: ' + e.message);
+  } finally {
+    setRunning(false);
+  }
+}
+
+function handleResult(data) {
+  if (!data.ok) {
+    showStatus('error', '❌ Pipeline error: ' + data.error);
+    const mb = document.getElementById('main-body');
+    mb.innerHTML = `<div style="background:var(--red-bg);border:1px solid #fecaca;border-radius:10px;padding:18px;font-size:0.78rem;white-space:pre-wrap;color:var(--red)">${esc(data.detail||data.error)}</div>`;
+    return;
+  }
+  lastResults = data.profiles;
+  showStatus('success', `✓ ${data.profile_count} profile${data.profile_count!==1?'s':''} produced`);
+  document.getElementById('results-heading').textContent = `Results · ${data.profile_count} profile${data.profile_count!==1?'s':''}`;
+  document.getElementById('view-tabs').style.display = 'flex';
+  renderCards(data.profiles);
+}
+
+function setRunning(on) {
+  const btn = document.getElementById('run-btn');
+  const sp = document.getElementById('spinner');
+  const lbl = document.getElementById('run-label');
+  btn.disabled = on;
+  sp.style.display = on ? 'block' : 'none';
+  lbl.textContent = on ? 'Running…' : '▶ Run Pipeline';
+}
+
+// ── View switch ────────────────────────────────────────────────
+function switchView(view, btn) {
+  currentView = view;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (view === 'cards') renderCards(lastResults);
+  else renderJson(lastResults);
+}
+
+// ── Cards renderer ─────────────────────────────────────────────
+function renderCards(profiles) {
+  const mb = document.getElementById('main-body');
+  if (!profiles || !profiles.length) {
+    mb.innerHTML = '<div class="empty-state"><div class="big-icon">🤷</div><h3>No profiles returned</h3><p>Check warnings with --verbose flag.</p></div>';
+    return;
+  }
+  const grid = document.createElement('div');
+  grid.className = 'profiles-grid';
+  profiles.forEach(p => grid.appendChild(buildCard(p)));
+  mb.innerHTML = '';
+  mb.appendChild(grid);
+}
+
+function buildCard(p) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const oc = p.overall_confidence || 0;
+  card.innerHTML = `
+    ${cardHeader(p, oc)}
+    <div class="card-body">
+      ${yeSection(p)}
+      ${skillsSection(p)}
+      ${expSection(p)}
+      ${eduSection(p)}
+      ${provSection(p)}
+    </div>`;
+  return card;
+}
+
+function cardHeader(p, oc) {
+  const loc = p.location ? [p.location.city,p.location.region,p.location.country].filter(Boolean).join(', ') : '';
+  const emailHtml = (p.emails||[]).length ? `<span class="mchip">✉ ${esc((p.emails||[]).join(', '))}</span>` : '';
+  const phones = p.phones||[];
+  const phoneHtml = phones.map(ph => {
+    const raw = !ph.startsWith('+');
+    return `<span class="mchip">📞 ${esc(ph)}${raw?'<span class="raw-phone" title="No country code — kept raw, not guessed"> ⚠</span>':''}</span>`;
+  }).join('');
+  const locHtml = loc ? `<span class="mchip">📍 ${esc(loc)}</span>` : '';
+  const links = p.links||{};
+  const linksHtml = [
+    links.linkedin ? `<span class="mchip">🔗 <a href="${esc(links.linkedin)}" target="_blank">LinkedIn</a></span>` : '',
+    links.github ? `<span class="mchip">🐙 <a href="${esc(links.github)}" target="_blank">GitHub</a></span>` : '',
+    links.portfolio ? `<span class="mchip">🌐 <a href="${esc(links.portfolio)}" target="_blank">Portfolio</a></span>` : '',
+  ].join('');
+  const idShort = (p.candidate_id||'').slice(0,24)+'…';
+  return `<div class="card-header">
+    <div class="name-row">
+      <div>
+        <h2>${esc(p.full_name||p.primary_email||'Unknown')}</h2>
+        ${p.headline ? `<div class="hl">${esc(p.headline)}</div>` : ''}
+      </div>
+      <div class="score-ring" style="${ringStyle(oc)}" title="Overall confidence">${Math.round(oc*100)}%</div>
+    </div>
+    <div class="meta-chips">${emailHtml}${phoneHtml}${locHtml}${linksHtml}</div>
+    <div class="id-pill" title="SHA-256 of normalized email">${esc(idShort)}</div>
+  </div>`;
+}
+
+function yeSection(p) {
+  const ye = p.years_experience ?? p['years_experience'];
+  if (ye == null) return '';
+  const conf = p.years_experience_confidence || 0;
+  const provs = p.provenance||[];
+  const yep = provs.find(x=>x.field==='years_experience');
+  const disagree = yep && yep.method && yep.method.includes('disagreement')
+    ? `<span class="disagree-badge" title="${esc(yep.method)}">⚠ sources disagree</span>` : '';
+  return `<div>
+    <div class="sec-title">Years of Experience</div>
+    <div style="font-size:0.9rem;font-weight:600">${ye} yrs ${disagree}</div>
+    ${cbar(conf,'years_experience')}
+  </div>`;
+}
+
+function skillsSection(p) {
+  if (!('skills' in p)) return '';
+  const skills = p.skills || [];
+  const conf = p.skills_confidence;
+  const tags = skills.length
+    ? skills.map(s => {
+        const name = typeof s==='string'?s:(s.name||s);
+        const sc = typeof s==='object'?(s.confidence||0.7):0.7;
+        const src = typeof s==='object'&&s.sources?s.sources.join(', '):'resume';
+        return `<span class="skill-tag" title="source: ${esc(src)} · ${Math.round(sc*100)}% confidence">${cdot(sc)}${esc(name)}</span>`;
+      }).join('')
+    : '<span style="font-size:0.78rem;color:var(--muted)">— (none)</span>';
+  return `<div>
+    <div class="sec-title">Skills</div>
+    <div class="skills-wrap">${tags}</div>
+    ${cbar(conf,'skills avg')}
+  </div>`;
+}
+
+function expSection(p) {
+  const allExp = p.experience||[];
+  // dedupe: show resume entries first, skip csv-only duplicates
+  const seen = new Set();
+  const deduped = allExp.filter(e => {
+    if (e.source==='resume') { seen.add((e.company||'')+'|'+(e.title||'')); return true; }
+    const k = (e.company||'')+'|'+(e.title||'');
+    return !seen.has(k);
+  });
+  if (!deduped.length) return '';
+  const items = deduped.slice(0,4).map(e => {
+    const dates = [e.start, e.end||(e.is_current?'Present':null)].filter(Boolean).join(' – ');
+    return `<div class="exp-item">
+      <div class="exp-title">${esc(e.title||'—')}${e.is_current?'<span class="current-badge">Current</span>':''}</div>
+      <div class="exp-meta">${esc(e.company||'')}${dates?' · '+esc(dates):''}</div>
+      ${e.summary?`<div class="exp-summary">${esc(e.summary.slice(0,120))}${e.summary.length>120?'…':''}</div>`:''}
+    </div>`;
+  }).join('');
+  return `<div>
+    <div class="sec-title">Experience</div>
+    ${items}
+    ${cbar(p.experience_confidence||0.75,'experience')}
+  </div>`;
+}
+
+function eduSection(p) {
+  if (!('education' in p)) return '';
+  const edu = p.education || [];
+  const items = edu.length
+    ? edu.map(e => `<div>
+    <div class="edu-inst">${esc(e.institution||'—')}</div>
+    <div class="edu-deg">${[e.degree,e.field,e.end_year].filter(Boolean).join(' · ')}</div>
+  </div>`).join('')
+    : '<span style="font-size:0.78rem;color:var(--muted)">— (none)</span>';
+  return `<div>
+    <div class="sec-title">Education</div>
+    ${items}
+    ${cbar(p.education_confidence,'education')}
+  </div>`;
+}
+
+function provSection(p) {
+  const prov = p.provenance||[];
+  if (!prov.length) return '';
+  const rows = prov.map(pr => `<tr>
+    <td>${esc(pr.field)}</td>
+    <td><code>${esc(pr.source)}</code></td>
+    <td><code>${esc(pr.method)}</code></td>
+  </tr>`).join('');
+  return `<div>
+    <details>
+      <summary>Provenance &amp; Sources (${prov.length})</summary>
+      <table class="prov-table">
+        <thead><tr><th>Field</th><th>Source</th><th>Method</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </details>
+  </div>`;
+}
+
+// ── JSON renderer ──────────────────────────────────────────────
+function renderJson(profiles) {
+  const mb = document.getElementById('main-body');
+  const pretty = JSON.stringify(profiles, null, 2);
+  mb.innerHTML = `
+    <div class="json-toolbar">
+      <span style="font-size:0.83rem;font-weight:600">${(profiles||[]).length} profiles</span>
+      <button class="copy-btn" onclick="copyJson()">📋 Copy JSON</button>
+      <button class="copy-btn" onclick="downloadJson()">⬇ Download</button>
+    </div>
+    <div class="json-view" id="json-output">${esc(pretty)}</div>`;
+}
+
+function copyJson() {
+  navigator.clipboard.writeText(JSON.stringify(lastResults, null, 2));
+  showStatus('success','JSON copied to clipboard');
+}
+
+function downloadJson() {
+  const blob = new Blob([JSON.stringify(lastResults, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'profiles.json';
+  a.click();
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+function confColor(v) {
+  if (v == null) return '#94a3b8';
+  if (v >= 0.85) return '#16a34a';
+  if (v >= 0.65) return '#d97706';
+  return '#dc2626';
+}
+
+function ringStyle(v) {
+  const c = confColor(v);
+  return `border-color:${c};color:${c}`;
+}
+
+function cdot(v) {
+  return `<span class="cdot" style="background:${confColor(v)}" title="${v == null ? 'n/a' : Math.round(v*100)+'%'}"></span>`;
+}
+
+function cbar(v, label) {
+  if (v == null) {
+    return `<div class="cbar-wrap" title="${label}: not scored">
+      <div class="cbar-bg"></div>
+      <span class="cval" style="color:var(--muted)">n/a</span>
+    </div>`;
+  }
+  const c = confColor(v);
+  const pct = Math.round(v*100);
+  return `<div class="cbar-wrap" title="${label}: ${pct}%">
+    <div class="cbar-bg"><div class="cbar-fill" style="width:${pct}%;background:${c}"></div></div>
+    <span class="cval">${pct}%</span>
+  </div>`;
+}
+
+function esc(s) {
+  if (s==null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

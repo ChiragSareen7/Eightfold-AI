@@ -1,0 +1,19 @@
+Sandeep Kumar
+sandeep.k.dev@protonmail.com
+9000099999
+Noida, India
+
+PROFILE
+Software Developer specializing in web application development.
+
+EXPERIENCE
+Wipro - Software Developer
+August 2022 - Present
+Developing client-facing web applications using modern JS frameworks.
+
+EDUCATION
+Amity University Noida - B.Tech Computer Science
+2022
+
+SKILLS
+JavaScript, ReactJS, Node, MongoDB

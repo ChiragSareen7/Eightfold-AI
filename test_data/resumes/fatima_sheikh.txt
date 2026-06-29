@@ -1,0 +1,24 @@
+Fatima Sheikh
+fatima.sheikh@gmail.com
++91 9876512340
+Mumbai, India
+
+SUMMARY
+ML Engineer with a focus on applied NLP systems.
+
+EXPERIENCE
+
+Paytm - ML Engineer
+2023 - Present
+Building and deploying NLP models for fraud detection use cases.
+
+Mu Sigma - Data Science Associate
+2019 - 2022
+Worked on statistical modeling projects for retail clients.
+
+EDUCATION
+NIT Surat - B.Tech Computer Science
+2019
+
+SKILLS
+Python, PyTorch, NLP, Transformers, Scikit-learn
