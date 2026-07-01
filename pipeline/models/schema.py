@@ -25,7 +25,10 @@ CANONICAL_FIELD_DEFAULTS: dict[str, Any] = {
     "education": [],
     "provenance": [],
     "field_confidence": {},
+    "field_reasoning": {},
     "overall_confidence": 0.0,
+    "source_profile_kind": "merged",
+    "source_notice": None,
 }
 
 # Fields that are always lists when empty (never null, never omitted).
@@ -78,6 +81,8 @@ def ensure_canonical_shape(data: dict[str, Any]) -> dict[str, Any]:
                 out[key] = empty_links()
             elif key == "field_confidence":
                 out[key] = dict(data.get("field_confidence") or {})
+            elif key == "field_reasoning":
+                out[key] = dict(data.get("field_reasoning") or {})
             else:
                 out[key] = default
         else:

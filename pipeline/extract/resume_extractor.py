@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Any
 
 from pipeline.models.raw import ExtractedResumeFields, RawResumeRecord
+from pipeline.sources.text_quality import looks_like_person_name
 
 EMAIL_RE = re.compile(
     r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"
@@ -140,8 +141,10 @@ def _extract_name(text: str) -> str | None:
     if not lines:
         return None
     first = lines[0]
-    # Skip if first line looks like a section header or email
+    # Skip if first line looks like a section header, email, or binary garbage.
     if EMAIL_RE.search(first) or len(first) > 60:
+        return None
+    if not looks_like_person_name(first):
         return None
     if re.match(r"^(resume|curriculum vitae|cv)$", first, re.IGNORECASE):
         return lines[1].strip() if len(lines) > 1 else None
@@ -287,6 +290,12 @@ def _parse_experience_block(block: str) -> dict[str, Any] | None:
 
     title = lines[0]
     company = lines[1] if len(lines) > 1 else None
+
+    # "Acme Corp - Software Engineer" on one line
+    if " - " in lines[0] and not DATE_RANGE_RE.search(lines[0]):
+        left, right = [p.strip() for p in lines[0].split(" - ", 1)]
+        if left and right:
+            company, title = left, right
 
     # If first line has dates, swap heuristic
     if date_match and date_match.start() < 5:

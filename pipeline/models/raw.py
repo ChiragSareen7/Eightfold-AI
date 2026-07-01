@@ -17,6 +17,10 @@ class RawCsvRecord:
     current_company: str | None = None
     title: str | None = None
     years_experience: str | None = None
+    experience_months: str | None = None
+    experience_description: str | None = None
+    skills: str | None = None
+    education: str | None = None
     resume_path: str | None = None
     row_number: int = 0
     warnings: list[str] = field(default_factory=list)

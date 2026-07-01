@@ -1,23 +1,25 @@
-"""Stage 4: Entity resolution — match-key cascade."""
+"""Stage 4: Entity resolution — email + phone identity match."""
 
 from __future__ import annotations
 
 import hashlib
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from rapidfuzz import fuzz
 
 from pipeline.logging_config import warn
 from pipeline.models.raw import ExtractedResumeFields, RawCsvRecord
+from pipeline.sources.text_quality import looks_like_person_name
 
-# Weakest tier: BOTH name and company must exceed thresholds — never one alone.
-NAME_FUZZY_THRESHOLD = 90
-COMPANY_FUZZY_THRESHOLD = 85
+# Both sources treated equally at merge time (tie-break favors resume over CSV).
+DEFAULT_SOURCE_PRIORITY = ["resume", "recruiter_csv"]
+YEARS_EXPERIENCE_DISAGREEMENT_THRESHOLD = 0.15  # 15%
 
-DEFAULT_SOURCE_PRIORITY = ["recruiter_csv", "resume"]
-YEARS_EXPERIENCE_DISAGREEMENT_THRESHOLD = 0.20  # 20%
+NAME_MANIFEST_VALIDATION_THRESHOLD = 85
+FILENAME_STEM_VALIDATION_THRESHOLD = 90
 
 
 @dataclass
@@ -69,9 +71,15 @@ def csv_to_source_record(csv: RawCsvRecord) -> SourceRecord:
             "name": csv.name,
             "email": csv.email,
             "phone": csv.phone,
+            "phone_method": getattr(csv, "phone_method", None),
             "current_company": csv.current_company,
             "title": csv.title,
             "years_experience": getattr(csv, "years_experience_value", None),
+            "years_experience_method": getattr(csv, "years_experience_method", None),
+            "experience_months": getattr(csv, "experience_months", None),
+            "experience_description": getattr(csv, "experience_description", None),
+            "skills": getattr(csv, "skills_normalized", []),
+            "education": getattr(csv, "education_normalized", []),
             "resume_path": csv.resume_path,
             "row_number": csv.row_number,
         },
@@ -98,6 +106,7 @@ def resume_to_source_record(extracted: ExtractedResumeFields) -> SourceRecord:
             "phones": extracted.phones,
             "phones_normalized": getattr(extracted, "phones_normalized", []),
             "phones_raw": getattr(extracted, "phones_raw", []),
+            "phones_raw_meta": getattr(extracted, "phones_raw_meta", []),
             "location": extracted.location,
             "links": extracted.links,
             "headline": extracted.headline,
@@ -112,78 +121,128 @@ def resume_to_source_record(extracted: ExtractedResumeFields) -> SourceRecord:
     )
 
 
+def _identity_key(rec: SourceRecord) -> tuple[str, str] | None:
+    """Both email and normalized phone must be present to participate in matching."""
+    if rec.email and rec.phone:
+        return (rec.email, rec.phone)
+    return None
+
+
+def _manifest_filename(rec: SourceRecord) -> str | None:
+    if rec.source_type != "recruiter_csv":
+        return None
+    resume_path = rec.data.get("resume_path")
+    return Path(resume_path).name if resume_path else None
+
+
+def _resume_filename(rec: SourceRecord) -> str | None:
+    if rec.source_type != "resume":
+        return None
+    file_path = rec.data.get("file_path")
+    return Path(file_path).name if file_path else None
+
+
+def _filename_stem(filename: str) -> str:
+    return Path(filename).stem.replace("_", " ").replace("-", " ")
+
+
+def _manifest_validates(csv_rec: SourceRecord, resume_rec: SourceRecord) -> bool:
+    """
+    CSV resume_path must point at this resume file, plus at least one identity check:
+    matching email, matching phone, fuzzy name agreement, or filename stem matching
+    both CSV name and resume name (recruiter named the file after the candidate).
+    """
+    manifest_fn = _manifest_filename(csv_rec)
+    resume_fn = _resume_filename(resume_rec)
+    if not manifest_fn or manifest_fn != resume_fn:
+        return False
+
+    email_ok = bool(
+        csv_rec.email and resume_rec.email and csv_rec.email == resume_rec.email
+    )
+    phone_ok = bool(
+        csv_rec.phone and resume_rec.phone and csv_rec.phone == resume_rec.phone
+    )
+    if email_ok or phone_ok:
+        return True
+
+    name_ok = False
+    if csv_rec.name and resume_rec.name:
+        name_ok = (
+            fuzz.ratio(csv_rec.name.lower(), resume_rec.name.lower())
+            >= NAME_MANIFEST_VALIDATION_THRESHOLD
+        )
+    if name_ok:
+        return True
+
+    stem = _filename_stem(manifest_fn).lower()
+    stem_matches_csv = False
+    stem_matches_resume = False
+    if csv_rec.name:
+        stem_matches_csv = (
+            fuzz.partial_ratio(csv_rec.name.lower(), stem) >= FILENAME_STEM_VALIDATION_THRESHOLD
+        )
+    if resume_rec.name:
+        stem_matches_resume = (
+            fuzz.partial_ratio(resume_rec.name.lower(), stem)
+            >= FILENAME_STEM_VALIDATION_THRESHOLD
+        )
+    return stem_matches_csv and stem_matches_resume
+
+
 def resolve_entities(records: list[SourceRecord]) -> list[EntityGroup]:
     """
-    Match-key cascade:
-    1. Exact email match
-    2. Exact normalized phone match
-    3. Fuzzy name + company (both must pass thresholds)
+    Merge when:
+    1. Normalized email AND phone both match, or
+    2. CSV resume_path names a resume file AND manifest validation approves the pair.
+
+    Email-only, phone-only, or name+company similarity never merge by themselves.
     """
     groups: list[EntityGroup] = []
     assigned: set[int] = set()
 
-    # Pass 1: email
-    email_index: dict[str, list[int]] = {}
+    identity_index: dict[tuple[str, str], list[int]] = {}
     for i, rec in enumerate(records):
-        if rec.email:
-            email_index.setdefault(rec.email, []).append(i)
+        key = _identity_key(rec)
+        if key:
+            identity_index.setdefault(key, []).append(i)
 
-    for indices in email_index.values():
-        if len(indices) < 2:
-            continue
-        group = EntityGroup(records=[records[i] for i in indices], match_method="exact_email", match_confidence=0.98)
-        groups.append(group)
-        assigned.update(indices)
-
-    # Pass 2: phone (unassigned only)
-    phone_index: dict[str, list[int]] = {}
-    for i, rec in enumerate(records):
-        if i in assigned or not rec.phone:
-            continue
-        phone_index.setdefault(rec.phone, []).append(i)
-
-    for indices in phone_index.values():
+    for indices in identity_index.values():
         if len(indices) < 2:
             continue
         group = EntityGroup(
             records=[records[i] for i in indices],
-            match_method="exact_phone",
-            match_confidence=0.92,
+            match_method="exact_email_and_phone",
+            match_confidence=0.97,
         )
         groups.append(group)
         assigned.update(indices)
 
-    # Pass 3: fuzzy name + company (unassigned only)
-    remaining = [i for i in range(len(records)) if i not in assigned]
-    used_in_fuzzy: set[int] = set()
-    for i in remaining:
-        if i in used_in_fuzzy:
+    for i, csv_rec in enumerate(records):
+        if i in assigned or csv_rec.source_type != "recruiter_csv":
             continue
-        rec_a = records[i]
-        if not rec_a.name or not rec_a.company:
+        manifest_fn = _manifest_filename(csv_rec)
+        if not manifest_fn:
             continue
-        cluster = [i]
-        for j in remaining:
-            if j <= i or j in used_in_fuzzy:
+        for j, resume_rec in enumerate(records):
+            if j in assigned or resume_rec.source_type != "resume":
                 continue
-            rec_b = records[j]
-            if not rec_b.name or not rec_b.company:
+            if _resume_filename(resume_rec) != manifest_fn:
                 continue
-            name_score = fuzz.ratio(rec_a.name.lower(), rec_b.name.lower())
-            company_score = fuzz.ratio(rec_a.company.lower(), rec_b.company.lower())
-            if name_score >= NAME_FUZZY_THRESHOLD and company_score >= COMPANY_FUZZY_THRESHOLD:
-                cluster.append(j)
-        if len(cluster) > 1:
-            group = EntityGroup(
-                records=[records[k] for k in cluster],
-                match_method="fuzzy_name_company",
-                match_confidence=0.65,
-            )
-            groups.append(group)
-            used_in_fuzzy.update(cluster)
-            assigned.update(cluster)
+            if not _manifest_validates(csv_rec, resume_rec):
+                warn(
+                    f"Manifest resume '{manifest_fn}' for CSV row "
+                    f"{csv_rec.data.get('row_number')} failed identity validation — not merged"
+                )
+                continue
+            groups.append(EntityGroup(
+                records=[csv_rec, resume_rec],
+                match_method="manifest_resume_link",
+                match_confidence=0.88,
+            ))
+            assigned.update({i, j})
+            break
 
-    # Singletons: each unassigned record is its own group
     for i in range(len(records)):
         if i not in assigned:
             groups.append(EntityGroup(
@@ -193,6 +252,17 @@ def resolve_entities(records: list[SourceRecord]) -> list[EntityGroup]:
             ))
 
     return groups
+
+
+def resume_has_usable_identity(extracted: ExtractedResumeFields) -> bool:
+    """Skip resume source records with nothing reliable to match or display."""
+    if extracted.emails:
+        return True
+    if extracted.phones:
+        return True
+    if looks_like_person_name(extracted.full_name):
+        return True
+    return False
 
 
 def link_csv_resumes_by_manifest(
@@ -207,26 +277,39 @@ def link_csv_resumes_by_manifest(
     from pathlib import Path
 
     all_records: list[SourceRecord] = []
-    linked_resume_paths: set[str] = set()
+    linked_filenames: set[str] = set()
 
     for csv in csv_records:
-        all_records.append(csv_to_source_record(csv))
+        rec = csv_to_source_record(csv)
         if csv.resume_path:
-            # Always resolve using only the filename — uploaded resumes are stored
-            # flat (no subdirectories). This handles CSV files where resume_path
-            # contains a folder prefix like "resumes/foo.txt" or "data/foo.txt".
             filename = Path(csv.resume_path).name
+            linked_filenames.add(filename)
             resume_key = str(Path(resumes_base_dir) / filename) if resumes_base_dir else filename
-            linked_resume_paths.add(resume_key)
-            # Also check by bare filename in case resume_records was keyed without dir
             matched = resume_records.get(resume_key) or resume_records.get(filename)
-            if matched:
+            if matched and resume_has_usable_identity(matched):
                 all_records.append(resume_to_source_record(matched))
+            elif matched:
+                warn(
+                    f"Resume linked in CSV row {csv.row_number} has no usable identity "
+                    f"(empty or corrupted): {filename}"
+                )
+                rec.data["manifest_resume_unreadable"] = filename
             else:
                 warn(f"Resume path in CSV not found or unreadable: {resume_key}")
+                rec.data["manifest_resume_missing"] = filename
+        all_records.append(rec)
 
+    seen_filenames: set[str] = set()
     for path, extracted in sorted(resume_records.items()):
-        if path not in linked_resume_paths:
-            all_records.append(resume_to_source_record(extracted))
+        filename = Path(path).name
+        if filename in seen_filenames:
+            continue
+        seen_filenames.add(filename)
+        if filename in linked_filenames:
+            continue
+        if not resume_has_usable_identity(extracted):
+            warn(f"Skipping resume with no usable identity: {filename}")
+            continue
+        all_records.append(resume_to_source_record(extracted))
 
     return all_records

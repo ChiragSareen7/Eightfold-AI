@@ -6,6 +6,7 @@ from pathlib import Path
 
 from pipeline.logging_config import warn
 from pipeline.models.raw import RawResumeRecord
+from pipeline.sources.text_quality import is_probably_binary_text
 
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".doc", ".txt"}
 
@@ -48,6 +49,15 @@ def read_resume(file_path: str | Path) -> RawResumeRecord | None:
             file_path=str(path),
             raw_text="",
             warnings=["empty or unreadable file"],
+        )
+
+    if is_probably_binary_text(text):
+        warn(f"Resume appears to be binary/corrupted, skipping parse: {path}")
+        return RawResumeRecord(
+            source_id=source_id,
+            file_path=str(path),
+            raw_text="",
+            warnings=["binary or corrupted file"],
         )
 
     return RawResumeRecord(

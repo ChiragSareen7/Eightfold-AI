@@ -1,0 +1,10 @@
+{
+  "_comment": "Only 2 fields with renamed output keys — good test that projection really reshapes JSON",
+  "fields": [
+    { "path": "person_label", "from": "full_name", "type": "string", "required": true },
+    { "path": "contact_mail", "from": "emails[0]", "type": "string", "required": true }
+  ],
+  "include_confidence": false,
+  "include_provenance": false,
+  "on_missing": "null"
+}

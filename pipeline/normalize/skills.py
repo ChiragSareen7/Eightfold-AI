@@ -72,6 +72,8 @@ class SkillResult:
     confidence: float
     method: str
     source: str = "resume"
+    best_match: str | None = None
+    best_score: float | None = None  # 0–100 rapidfuzz ratio
 
 
 def canonicalize_skill(raw: str) -> SkillResult:
@@ -110,4 +112,6 @@ def canonicalize_skill(raw: str) -> SkillResult:
         name=raw.strip(),
         confidence=0.6,
         method="kept_original_below_threshold",
+        best_match=best_match,
+        best_score=round(best_score, 1) if best_match else None,
     )

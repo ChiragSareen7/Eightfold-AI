@@ -1,0 +1,10 @@
+{
+  "_comment": "Required phone — csv-only rows without a phone fail projection (skipped with error)",
+  "fields": [
+    { "path": "full_name", "type": "string", "required": true },
+    { "path": "phone", "from": "phones[0]", "type": "string", "required": true, "normalize": "E164" }
+  ],
+  "include_confidence": false,
+  "include_provenance": false,
+  "on_missing": "error"
+}

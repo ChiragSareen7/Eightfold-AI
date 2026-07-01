@@ -1,0 +1,13 @@
+{
+  "_comment": "Strict mode — email + phone + years required; throws error if any missing",
+  "fields": [
+    { "path": "full_name", "type": "string", "required": true },
+    { "path": "primary_email", "from": "emails[0]", "type": "string", "required": true },
+    { "path": "phone", "from": "phones[0]", "type": "string", "normalize": "E164", "required": true },
+    { "path": "years_experience", "type": "number", "required": true },
+    { "path": "skills", "from": "skills[].name", "type": "string[]", "normalize": "canonical" }
+  ],
+  "include_confidence": true,
+  "include_provenance": true,
+  "on_missing": "error"
+}

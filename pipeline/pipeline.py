@@ -9,6 +9,7 @@ from pipeline.confidence.scoring import score_profile
 from pipeline.extract.resume_extractor import extract_fields
 from pipeline.merge.entity_resolution import link_csv_resumes_by_manifest, resolve_entities
 from pipeline.merge.merger import merge_group
+from pipeline.merge.source_annotation import apply_source_notices, profile_card_meta
 from pipeline.models.canonical import CanonicalProfile
 from pipeline.models.raw import ExtractedResumeFields
 from pipeline.normalize import normalize_csv_record, normalize_extracted_resume
@@ -62,7 +63,44 @@ def build_canonical_profiles(
         merged = merge_group(group, source_priority)
         scored = score_profile(merged)
         profiles.append(scored)
+    apply_source_notices(profiles)
     return profiles
+
+
+def project_profiles(
+    profiles: list[CanonicalProfile],
+    config_path: str | Path | None = None,
+    config: dict[str, Any] | None = None,
+    *,
+    skip_on_error: bool = True,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """
+    Project canonical profiles with runtime config.
+
+    Returns (projected_profiles, projection_errors).
+    """
+    from pipeline.logging_config import warn as _warn
+
+    cfg = config if config is not None else load_config(config_path)
+    results: list[dict[str, Any]] = []
+    meta: list[dict[str, Any]] = []
+    errors: list[dict[str, Any]] = []
+    for p in profiles:
+        try:
+            results.append(project(p, cfg))
+            meta.append(profile_card_meta(p))
+        except Exception as exc:
+            err = {
+                "candidate_id": p.candidate_id,
+                "full_name": p.full_name,
+                "error": str(exc),
+            }
+            errors.append(err)
+            if skip_on_error:
+                _warn(f"Projection failed for profile {p.candidate_id}: {exc} — skipped")
+            else:
+                raise
+    return results, meta, errors
 
 
 def run_pipeline(
@@ -76,14 +114,6 @@ def run_pipeline(
 
     Returns JSON-serializable list of projected profiles.
     """
-    from pipeline.logging_config import warn as _warn
-
     profiles = build_canonical_profiles(csv_path, resumes_dir, source_priority)
-    config = load_config(config_path)
-    results: list[dict[str, Any]] = []
-    for p in profiles:
-        try:
-            results.append(project(p, config))
-        except Exception as exc:
-            _warn(f"Projection failed for profile {p.candidate_id}: {exc} — skipped")
+    results, _, _ = project_profiles(profiles, config_path=config_path)
     return results

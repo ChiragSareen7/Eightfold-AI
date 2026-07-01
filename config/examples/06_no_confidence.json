@@ -1,0 +1,11 @@
+{
+  "_comment": "No *_confidence keys, no overall_confidence, no field_reasoning",
+  "fields": [
+    { "path": "full_name", "type": "string" },
+    { "path": "primary_email", "from": "emails[0]", "type": "string" },
+    { "path": "years_experience", "type": "number" }
+  ],
+  "include_confidence": false,
+  "include_provenance": false,
+  "on_missing": "null"
+}

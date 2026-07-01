@@ -8,18 +8,22 @@ import shutil
 import tempfile
 import traceback
 from pathlib import Path
+from typing import Any
 
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
 
 ROOT = Path(__file__).parent.parent
 STATIC_DIR = Path(__file__).parent / "static"
 DEFAULT_CONFIG = ROOT / "pipeline" / "project" / "default_config.json"
 CUSTOM_CONFIG = ROOT / "config" / "custom.json"
-SAMPLES_DIR = ROOT / "data" / "samples"
+SAMPLE_INPUT_DIR = ROOT / "test_data_v2"
+SAMPLE_CSV = SAMPLE_INPUT_DIR / "recruiter.csv"
+SAMPLE_RESUMES_DIR = SAMPLE_INPUT_DIR / "resumes"
 
 app = FastAPI(title="Candidate Transformer", version="0.1.0")
 
@@ -32,6 +36,53 @@ app.add_middleware(
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("webapp")
+
+
+class ReprojectRequest(BaseModel):
+    canonical_profiles: list[dict[str, Any]] = Field(..., min_length=1)
+    config: dict[str, Any] | None = None
+
+
+def _parse_config_json(config_json: str | None) -> dict[str, Any]:
+    from pipeline.project.projector import load_config
+
+    if config_json and config_json.strip():
+        try:
+            return json.loads(config_json)
+        except json.JSONDecodeError as e:
+            raise HTTPException(400, f"Invalid config JSON: {e}") from e
+    return load_config(None)
+
+
+def _batch_summary_from_canonical(profiles) -> dict[str, int]:
+    kinds = [p.source_profile_kind for p in profiles]
+    mismatches = sum(
+        1 for p in profiles
+        if p.source_notice and "do not match" in p.source_notice
+    )
+    return {
+        "csv_only": kinds.count("csv_only"),
+        "resume_only": kinds.count("resume_only"),
+        "merged": kinds.count("merged"),
+        "manifest_mismatches": mismatches,
+    }
+
+
+def _run_and_project(csv_path: Path, resumes_dir: Path, config: dict[str, Any]) -> dict[str, Any]:
+    from pipeline.pipeline import build_canonical_profiles, project_profiles
+
+    profiles = build_canonical_profiles(csv_path, resumes_dir)
+    projected, profile_meta, errors = project_profiles(profiles, config=config)
+    canonical_json = [p.to_dict() for p in profiles]
+    return {
+        "ok": True,
+        "profile_count": len(projected),
+        "profiles": projected,
+        "profile_meta": profile_meta,
+        "canonical_profiles": canonical_json,
+        "projection_errors": errors,
+        "batch_summary": _batch_summary_from_canonical(profiles),
+    }
 
 
 # ── Static files ──────────────────────────────────────────────────────────────
@@ -60,19 +111,18 @@ def get_custom_config():
 
 @app.get("/api/samples/csv")
 def get_sample_csv():
-    p = SAMPLES_DIR / "recruiter.csv"
-    if not p.exists():
-        raise HTTPException(404, "Sample CSV not found — run: python data/samples/generate_samples.py")
-    return FileResponse(str(p), media_type="text/csv", filename="recruiter.csv")
+    if not SAMPLE_CSV.exists():
+        raise HTTPException(404, "Sample CSV not found at test_data_v2/recruiter.csv")
+    return FileResponse(str(SAMPLE_CSV), media_type="text/csv", filename="recruiter.csv")
 
 
 @app.get("/api/samples/list")
 def list_sample_resumes():
-    if not SAMPLES_DIR.exists():
+    if not SAMPLE_RESUMES_DIR.exists():
         return {"resumes": []}
     files = [
         {"name": p.name, "size": p.stat().st_size}
-        for p in sorted(SAMPLES_DIR.iterdir())
+        for p in sorted(SAMPLE_RESUMES_DIR.iterdir())
         if p.suffix.lower() in (".pdf", ".docx", ".doc", ".txt")
     ]
     return {"resumes": files}
@@ -80,7 +130,7 @@ def list_sample_resumes():
 
 @app.get("/api/samples/resume/{filename}")
 def get_sample_resume(filename: str):
-    p = SAMPLES_DIR / filename
+    p = SAMPLE_RESUMES_DIR / filename
     if not p.exists() or p.suffix.lower() not in (".pdf", ".docx", ".doc", ".txt"):
         raise HTTPException(404, "Resume not found")
     media_types = {
@@ -101,17 +151,12 @@ async def run_pipeline(
     resume_files: list[UploadFile] = File(..., description="Resume PDF/DOCX files"),
     config_json: str | None = Form(None, description="Projection config JSON string"),
 ):
-    """
-    Accept CSV + resumes + optional config, run pipeline, return profiles.
-    All files are written to a temp directory and cleaned up after the run.
-    """
+    """Run merge pipeline, then project canonical records with the supplied config."""
     tmpdir = Path(tempfile.mkdtemp(prefix="eightfold_"))
     try:
-        # Write CSV
         csv_path = tmpdir / "recruiter.csv"
         csv_path.write_bytes(await csv_file.read())
 
-        # Write resumes
         resumes_dir = tmpdir / "resumes"
         resumes_dir.mkdir()
         for resume in resume_files:
@@ -120,26 +165,8 @@ async def run_pipeline(
             dest = resumes_dir / resume.filename
             dest.write_bytes(await resume.read())
 
-        # Write config
-        config_path: Path | None = None
-        if config_json:
-            try:
-                parsed_cfg = json.loads(config_json)
-            except json.JSONDecodeError as e:
-                raise HTTPException(400, f"Invalid config JSON: {e}")
-            config_path = tmpdir / "config.json"
-            config_path.write_text(json.dumps(parsed_cfg), encoding="utf-8")
-
-        # Run pipeline (import here so server can start even without pipeline installed yet)
-        from pipeline.pipeline import run_pipeline as _run
-
-        results = _run(csv_path, resumes_dir, config_path)
-
-        return JSONResponse({
-            "ok": True,
-            "profile_count": len(results),
-            "profiles": results,
-        })
+        config = _parse_config_json(config_json)
+        return JSONResponse(_run_and_project(csv_path, resumes_dir, config))
 
     except HTTPException:
         raise
@@ -155,32 +182,13 @@ async def run_pipeline(
 
 @app.post("/api/run/samples")
 async def run_on_samples(config_json: str | None = Form(None)):
-    """Run pipeline on the built-in sample data."""
-    csv_path = SAMPLES_DIR / "recruiter.csv"
-    if not csv_path.exists():
-        raise HTTPException(404, "Samples not found — run: python data/samples/generate_samples.py")
+    """Run pipeline on built-in test_data_v2 sample batch."""
+    if not SAMPLE_CSV.exists() or not SAMPLE_RESUMES_DIR.exists():
+        raise HTTPException(404, "Sample data not found — expected test_data_v2/recruiter.csv and resumes/")
 
-    tmpdir: Path | None = None
     try:
-        config_path: Path | None = None
-        if config_json:
-            try:
-                parsed_cfg = json.loads(config_json)
-            except json.JSONDecodeError as e:
-                raise HTTPException(400, f"Invalid config JSON: {e}")
-            tmpdir = Path(tempfile.mkdtemp(prefix="eightfold_"))
-            config_path = tmpdir / "config.json"
-            config_path.write_text(json.dumps(parsed_cfg), encoding="utf-8")
-
-        from pipeline.pipeline import run_pipeline as _run
-
-        results = _run(csv_path, SAMPLES_DIR, config_path)
-
-        return JSONResponse({
-            "ok": True,
-            "profile_count": len(results),
-            "profiles": results,
-        })
+        config = _parse_config_json(config_json)
+        return JSONResponse(_run_and_project(SAMPLE_CSV, SAMPLE_RESUMES_DIR, config))
     except HTTPException:
         raise
     except Exception as exc:
@@ -189,9 +197,34 @@ async def run_on_samples(config_json: str | None = Form(None)):
             status_code=500,
             content={"ok": False, "error": str(exc), "detail": traceback.format_exc()},
         )
-    finally:
-        if tmpdir:
-            shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+@app.post("/api/reproject")
+async def reproject(body: ReprojectRequest):
+    """Re-project cached canonical profiles when only the config changes."""
+    from pipeline.models.canonical import CanonicalProfile
+    from pipeline.pipeline import project_profiles
+
+    try:
+        profiles = [CanonicalProfile.from_dict(item) for item in body.canonical_profiles]
+        config = body.config if body.config is not None else _parse_config_json(None)
+        projected, profile_meta, errors = project_profiles(profiles, config=config)
+        return JSONResponse({
+            "ok": True,
+            "profile_count": len(projected),
+            "profiles": projected,
+            "profile_meta": profile_meta,
+            "projection_errors": errors,
+            "batch_summary": _batch_summary_from_canonical(profiles),
+        })
+    except HTTPException:
+        raise
+    except Exception as exc:
+        log.error("Reproject error: %s\n%s", exc, traceback.format_exc())
+        return JSONResponse(
+            status_code=500,
+            content={"ok": False, "error": str(exc), "detail": traceback.format_exc()},
+        )
 
 
 @app.get("/api/health")

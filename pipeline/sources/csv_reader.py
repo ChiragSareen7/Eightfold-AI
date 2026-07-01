@@ -36,6 +36,20 @@ COLUMN_ALIASES: dict[str, str] = {
     "years of experience": "years_experience",
     "experience_years": "years_experience",
     "yoe": "years_experience",
+    "experience_months": "experience_months",
+    "experience months": "experience_months",
+    "months_experience": "experience_months",
+    "experience_description": "experience_description",
+    "experience description": "experience_description",
+    "role_description": "experience_description",
+    "job_description": "experience_description",
+    "skills": "skills",
+    "skill": "skills",
+    "technical skills": "skills",
+    "education": "education",
+    "degree": "education",
+    "qualification": "education",
+    "company_name": "current_company",
     "resume_path": "resume_path",
     "resume": "resume_path",
     "resume_file": "resume_path",
@@ -65,6 +79,23 @@ def _clean_cell(value: str | None) -> str | None:
     return stripped if stripped else None
 
 
+def _is_effectively_empty_row(record: RawCsvRecord) -> bool:
+    """Skip wholly blank CSV rows that carry no candidate identity."""
+    return not any(
+        [
+            record.name,
+            record.email,
+            record.phone,
+            record.current_company,
+            record.title,
+            record.resume_path,
+            record.years_experience,
+            record.skills,
+            record.education,
+        ]
+    )
+
+
 def read_csv(csv_path: str | Path) -> list[RawCsvRecord]:
     """
     Read recruiter CSV into plain internal records.
@@ -92,6 +123,9 @@ def read_csv(csv_path: str | Path) -> list[RawCsvRecord]:
             for row_num, row in enumerate(reader, start=2):
                 try:
                     record = _parse_row(row, header_map, row_num)
+                    if _is_effectively_empty_row(record):
+                        warn(f"CSV row {row_num} skipped: empty row (no name, email, phone, or resume link)")
+                        continue
                     records.append(record)
                 except Exception as exc:
                     warn(f"CSV row {row_num} skipped: {exc}")
@@ -130,6 +164,10 @@ def _parse_row(
         current_company=data.get("current_company"),
         title=data.get("title"),
         years_experience=data.get("years_experience"),
+        experience_months=data.get("experience_months"),
+        experience_description=data.get("experience_description"),
+        skills=data.get("skills"),
+        education=data.get("education"),
         resume_path=data.get("resume_path"),
         row_number=row_num,
         warnings=warnings,

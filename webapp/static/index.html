@@ -3,379 +3,416 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Candidate Transformer · Eightfold</title>
+<title>Profile Merge Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet"/>
 <style>
-/* ── Design tokens ─────────────────────────────────────────── */
 :root{
-  --bg:#f0f2f5;
-  --surface:#fff;
-  --border:#e2e8f0;
-  --text:#1a202c;
-  --muted:#64748b;
-  --accent:#6366f1;
-  --accent-hover:#4f46e5;
-  --accent-soft:#eef2ff;
-  --green:#16a34a;--green-bg:#f0fdf4;
-  --yellow:#d97706;--yellow-bg:#fffbeb;
-  --red:#dc2626;--red-bg:#fef2f2;
-  --radius:12px;
-  --sidebar:340px;
+  --paper:#f4f0e8;
+  --paper-deep:#e8e2d6;
+  --card:#faf7f2;
+  --card-edge:#ddd6ca;
+  --ink:#2a2622;
+  --ink-soft:#6b6560;
+  --ink-faint:#9a948c;
+  --terra:#b8613a;
+  --terra-soft:#f3e4dc;
+  --sage:#5a7d68;
+  --sage-soft:#e4ede7;
+  --honey:#c49a3c;
+  --honey-soft:#f8f0df;
+  --rose:#b84a4a;
+  --rose-soft:#faeaea;
+  --radius:14px;
+  --radius-sm:9px;
+  --shadow:0 1px 0 rgba(42,38,34,.04), 0 8px 24px rgba(42,38,34,.06);
+  --font-ui:"DM Sans",system-ui,sans-serif;
+  --font-display:"Fraunces",Georgia,serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
-
-/* ── Layout ─────────────────────────────────────────────────── */
-.app{display:flex;height:100vh;overflow:hidden;}
-
-/* Sidebar */
-.sidebar{
-  width:var(--sidebar);flex-shrink:0;
-  background:var(--surface);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;
+html,body{
+  min-height:100%;
+  font-family:var(--font-ui);
+  font-size:14px;
+  color:var(--ink);
+  background:linear-gradient(165deg,#f7f3ec 0%,#eef3ee 38%,#f0ebe3 100%);
+  background-attachment:fixed;
 }
-.sidebar-header{
-  padding:18px 20px 14px;border-bottom:1px solid var(--border);
+
+.shell{min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── Masthead ─────────────────────────────────────────────── */
+.masthead{
+  padding:20px 28px 16px;
+  border-bottom:1px solid rgba(221,214,202,.7);
+  background:linear-gradient(90deg,rgba(250,247,242,.92),rgba(228,237,231,.55));
+  backdrop-filter:blur(6px);
+  display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;
 }
-.sidebar-header h1{font-size:1rem;font-weight:700;}
-.sidebar-header p{font-size:0.75rem;color:var(--muted);margin-top:3px;}
-
-.sidebar-body{flex:1;overflow-y:auto;padding:16px 16px 0;}
-
-/* Main panel */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.topbar{
-  padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:12px;
+.brand-block h1{
+  font-family:var(--font-display);
+  font-size:1.45rem;font-weight:600;letter-spacing:-.02em;
+  color:var(--ink);
 }
-.topbar h2{font-size:0.9rem;font-weight:600;flex:1;}
-.tab-bar{display:flex;gap:4px;}
-.tab-btn{
-  padding:5px 14px;border:1px solid var(--border);border-radius:20px;
-  background:transparent;font-size:0.78rem;cursor:pointer;color:var(--muted);
-  transition:all .15s;
+.brand-block p{font-size:.8rem;color:var(--ink-soft);margin-top:4px;max-width:420px;line-height:1.45;}
+.brand-mark{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:8px;margin-right:8px;vertical-align:middle;
+  background:linear-gradient(135deg,var(--terra),#d4845f);
+  color:#fff;font-size:.75rem;font-weight:700;font-family:var(--font-ui);
 }
-.tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
-.tab-btn:hover:not(.active){background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
-
-.main-body{flex:1;overflow:auto;padding:24px;}
-
-/* ── Form sections ───────────────────────────────────────────── */
-.form-section{margin-bottom:16px;}
-.form-label{
-  font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
-  color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:6px;
+.view-switch{display:flex;gap:6px;background:var(--paper-deep);padding:4px;border-radius:999px;border:1px solid var(--card-edge);}
+.view-switch button{
+  border:none;background:transparent;padding:7px 16px;border-radius:999px;
+  font-size:.78rem;font-weight:500;color:var(--ink-soft);cursor:pointer;transition:all .18s;
 }
-.required-dot{width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block;}
+.view-switch button.active{background:var(--card);color:var(--terra);box-shadow:var(--shadow);}
+.view-switch button:hover:not(.active){color:var(--ink);}
 
-/* Drop zone */
+/* ── Control deck (uploads) ─────────────────────────────── */
+.control-deck{
+  padding:18px 28px 14px;
+  display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:14px;
+  border-bottom:1px solid rgba(221,214,202,.6);
+}
+@media(max-width:960px){.control-deck{grid-template-columns:1fr;}}
+
+.panel{
+  background:rgba(250,247,242,.85);
+  border:1px solid var(--card-edge);
+  border-radius:var(--radius);
+  padding:14px 14px 12px;
+  display:flex;flex-direction:column;gap:8px;
+}
+.panel-label{
+  font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-faint);display:flex;align-items:center;gap:6px;
+}
+.req{width:5px;height:5px;border-radius:50%;background:var(--terra);}
+
 .drop-zone{
-  border:2px dashed var(--border);border-radius:10px;
-  padding:20px 16px;text-align:center;cursor:pointer;
-  transition:all .15s;background:#fafafa;
-  position:relative;
+  flex:1;min-height:88px;border:1.5px dashed #cfc7bb;border-radius:var(--radius-sm);
+  padding:14px;text-align:center;cursor:pointer;position:relative;
+  background:linear-gradient(180deg,#fff9f2,#f7f2ea);transition:border-color .15s,background .15s;
 }
-.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--accent-soft);}
-.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-.drop-zone .dz-icon{font-size:1.6rem;margin-bottom:6px;}
-.drop-zone .dz-text{font-size:0.78rem;color:var(--muted);}
-.drop-zone .dz-files{margin-top:8px;font-size:0.75rem;color:var(--text);font-weight:500;}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--sage);background:var(--sage-soft);}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.drop-zone .dz-title{font-size:.82rem;font-weight:600;color:var(--ink);}
+.drop-zone .dz-hint{font-size:.72rem;color:var(--ink-faint);margin-top:4px;line-height:1.4;}
+.drop-zone .dz-files{margin-top:8px;}
 
 .file-chip{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:3px 10px;background:var(--accent-soft);color:var(--accent);
-  border-radius:20px;font-size:0.72rem;margin:2px;
+  display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
+  background:var(--terra-soft);color:var(--terra);border-radius:999px;
+  font-size:.7rem;font-weight:500;margin:2px;
 }
-.file-chip .remove{cursor:pointer;font-size:0.8rem;color:var(--muted);margin-left:2px;}
-.file-chip .remove:hover{color:var(--red);}
+.file-chip .remove{cursor:pointer;opacity:.55;margin-left:2px;}
+.file-chip .remove:hover{opacity:1;color:var(--rose);}
 
-/* Config editor */
-.config-tabs{display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--border);}
+.config-row{display:flex;gap:4px;flex-wrap:wrap;}
 .cfg-tab{
-  padding:6px 12px;font-size:0.75rem;cursor:pointer;color:var(--muted);
-  border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;
+  padding:5px 11px;font-size:.7rem;border-radius:999px;border:1px solid var(--card-edge);
+  background:var(--card);color:var(--ink-soft);cursor:pointer;transition:all .15s;
 }
-.cfg-tab.active{color:var(--accent);border-color:var(--accent);font-weight:600;}
+.cfg-tab.active{background:var(--sage-soft);border-color:#b8cfc0;color:var(--sage);font-weight:600;}
 .config-editor{
-  width:100%;min-height:130px;max-height:260px;padding:10px;
-  font-family:"SF Mono",Consolas,monospace;font-size:0.72rem;line-height:1.6;
-  border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;
-  resize:vertical;outline:none;background:#fafafa;color:var(--text);
+  width:100%;min-height:72px;max-height:140px;padding:9px 10px;
+  font-family:"SF Mono",ui-monospace,monospace;font-size:.7rem;line-height:1.55;
+  border:1px solid var(--card-edge);border-radius:var(--radius-sm);
+  resize:vertical;outline:none;background:#fffdf9;color:var(--ink);
 }
-.config-editor:focus{border-color:var(--accent);background:#fff;}
-.config-status{font-size:0.7rem;margin-top:4px;min-height:14px;}
-.config-status.ok{color:var(--green);}
-.config-status.err{color:var(--red);}
+.config-editor:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(90,125,104,.12);}
+.config-status{font-size:.68rem;min-height:14px;}
+.config-status.ok{color:var(--sage);}
+.config-status.err{color:var(--rose);}
 
-/* Buttons */
+.action-row{display:flex;gap:8px;margin-top:4px;}
 .run-btn{
-  width:100%;padding:11px;background:var(--accent);color:#fff;
-  border:none;border-radius:10px;font-size:0.88rem;font-weight:600;
-  cursor:pointer;transition:background .15s;margin-top:4px;
+  flex:1;padding:10px 14px;border:none;border-radius:var(--radius-sm);
+  background:linear-gradient(135deg,var(--terra),#a04f2f);
+  color:#fff;font-size:.84rem;font-weight:600;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 2px 8px rgba(184,97,58,.25);transition:transform .12s,box-shadow .12s;
 }
-.run-btn:hover{background:var(--accent-hover);}
-.run-btn:disabled{background:#a5b4fc;cursor:not-allowed;}
+.run-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 14px rgba(184,97,58,.3);}
+.run-btn:disabled{opacity:.55;cursor:not-allowed;transform:none;}
 .sample-btn{
-  width:100%;padding:8px;background:transparent;color:var(--muted);
-  border:1px solid var(--border);border-radius:10px;font-size:0.78rem;
-  cursor:pointer;transition:all .15s;margin-top:6px;
+  padding:10px 14px;border:1px solid var(--card-edge);border-radius:var(--radius-sm);
+  background:var(--card);color:var(--ink-soft);font-size:.78rem;cursor:pointer;white-space:nowrap;
 }
-.sample-btn:hover{background:var(--bg);color:var(--accent);border-color:var(--accent);}
-
-.sidebar-footer{padding:12px 16px 16px;}
-
-/* ── Status / error bar ──────────────────────────────────────── */
-.status-bar{
-  padding:8px 24px;font-size:0.78rem;
-  display:none;align-items:center;gap:8px;
-  border-bottom:1px solid var(--border);
-}
-.status-bar.info{background:#eff6ff;color:#1d4ed8;display:flex;}
-.status-bar.error{background:var(--red-bg);color:var(--red);display:flex;}
-.status-bar.success{background:var(--green-bg);color:var(--green);display:flex;}
-.status-bar .close{margin-left:auto;cursor:pointer;opacity:.6;}
-
-/* ── Empty/loading states ────────────────────────────────────── */
-.empty-state{
-  text-align:center;padding:80px 32px;color:var(--muted);
-}
-.empty-state .big-icon{font-size:3rem;margin-bottom:14px;}
-.empty-state h3{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:6px;}
-.empty-state p{font-size:0.83rem;line-height:1.7;}
-
+.sample-btn:hover{border-color:var(--sage);color:var(--sage);background:var(--sage-soft);}
 .spinner{
-  width:18px;height:18px;border:2px solid rgba(255,255,255,.4);
-  border-top-color:#fff;border-radius:50%;
-  animation:spin .7s linear infinite;display:none;
+  width:16px;height:16px;border:2px solid rgba(255,255,255,.35);
+  border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;
 }
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* ── Profiles grid ───────────────────────────────────────────── */
-.profiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;}
-
-/* ── Profile card ────────────────────────────────────────────── */
-.card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;transition:box-shadow .15s;
+/* ── Status ─────────────────────────────────────────────── */
+.status-bar{
+  display:none;padding:9px 28px;font-size:.78rem;align-items:center;gap:8px;
+  border-bottom:1px solid rgba(221,214,202,.5);
 }
-.card:hover{box-shadow:0 4px 20px rgba(0,0,0,.07);}
+.status-bar.info{display:flex;background:var(--sage-soft);color:#3d5c4a;}
+.status-bar.error{display:flex;background:var(--rose-soft);color:var(--rose);}
+.status-bar.success{display:flex;background:var(--honey-soft);color:#7a5a18;}
+.status-bar .close{margin-left:auto;cursor:pointer;opacity:.5;}
 
-.card-header{
-  padding:18px 18px 14px;
-  background:linear-gradient(135deg,#f8fafc 0%,#fff 100%);
-  border-bottom:1px solid var(--border);
+/* ── Workspace ───────────────────────────────────────────── */
+.workspace{flex:1;padding:22px 28px 32px;overflow:auto;}
+.results-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap;
 }
-.card-header .name-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
-.card-header h2{font-size:1.05rem;font-weight:700;}
-.card-header .hl{font-size:0.78rem;color:var(--muted);margin-top:3px;}
+.results-head-main{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.results-head h2{font-family:var(--font-display);font-size:1.1rem;font-weight:600;}
+.results-head span{font-size:.78rem;color:var(--ink-faint);}
 
-.score-ring{
-  flex-shrink:0;width:42px;height:42px;border-radius:50%;
+.source-filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.source-filter{
+  border:1px solid var(--card-edge);background:var(--card);padding:6px 12px;border-radius:999px;
+  font-size:.72rem;font-weight:600;cursor:pointer;color:var(--ink-soft);transition:all .15s;
+}
+.source-filter:hover{border-color:#b8cfc0;color:var(--ink);}
+.source-filter.active.filter-merged{background:var(--paper-deep);border-color:#cfc7bb;color:var(--ink);}
+.source-filter.active.filter-csv{background:#dce8ee;border-color:#b8cdd8;color:#4a6575;}
+.source-filter.active.filter-resume{background:var(--sage-soft);border-color:#b8cfc0;color:var(--sage);}
+.source-filter:not(.active){opacity:.45;text-decoration:line-through;}
+
+.empty-state{
+  text-align:center;padding:64px 24px;max-width:440px;margin:40px auto;
+  background:rgba(250,247,242,.7);border:1px dashed var(--card-edge);border-radius:var(--radius);
+}
+.empty-state .illus{
+  width:56px;height:56px;margin:0 auto 16px;border-radius:50%;
+  background:linear-gradient(135deg,var(--sage-soft),var(--terra-soft));
   display:flex;align-items:center;justify-content:center;
-  font-size:0.72rem;font-weight:700;border:3px solid transparent;
+  font-family:var(--font-display);font-size:1.2rem;color:var(--sage);
+}
+.empty-state h3{font-family:var(--font-display);font-size:1rem;margin-bottom:8px;}
+.empty-state p{font-size:.82rem;color:var(--ink-soft);line-height:1.65;}
+
+/* ── Profile dossiers (not grid cards) ──────────────────── */
+.profiles-list{display:flex;flex-direction:column;gap:16px;}
+
+.batch-banner{
+  padding:12px 16px;border-radius:var(--radius-sm);
+  background:var(--honey-soft);border:1px solid #e8d5a8;
+  font-size:.8rem;color:#6b5420;line-height:1.5;
 }
 
-.meta-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
-.mchip{
-  display:flex;align-items:center;gap:4px;
-  font-size:0.74rem;color:var(--muted);
+.dossier{
+  display:grid;grid-template-columns:220px 1fr;
+  background:var(--card);border:1px solid var(--card-edge);
+  border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);
 }
-.mchip a{color:var(--accent);text-decoration:none;}
-.mchip a:hover{text-decoration:underline;}
-.raw-phone{color:var(--yellow);font-size:0.68rem;}
+@media(max-width:720px){.dossier{grid-template-columns:1fr;}}
 
-.id-pill{
-  font-size:0.65rem;font-family:monospace;background:#f1f5f9;
-  color:var(--muted);padding:2px 8px;border-radius:20px;
-  display:inline-block;margin-top:8px;word-break:break-all;
+.dossier-side{
+  padding:18px 16px;
+  background:linear-gradient(180deg,#f3ede4 0%,#ebe6dc 100%);
+  border-right:1px solid var(--card-edge);
+  display:flex;flex-direction:column;gap:10px;
 }
-
-.card-body{padding:14px 18px;display:flex;flex-direction:column;gap:12px;}
-
-.sec-title{
-  font-size:0.68rem;font-weight:700;text-transform:uppercase;
-  letter-spacing:.06em;color:var(--muted);margin-bottom:6px;
+.dossier-side h2{
+  font-family:var(--font-display);font-size:1.05rem;line-height:1.25;
+  font-weight:600;color:var(--ink);
 }
+.dossier-side .hl{font-size:.76rem;color:var(--ink-soft);margin-top:4px;line-height:1.35;}
+.score-pill{
+  align-self:flex-start;padding:6px 12px;border-radius:999px;
+  font-size:.78rem;font-weight:700;border:2px solid;
+  background:rgba(255,255,255,.5);
+}
+.meta-list{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
+.meta-line{font-size:.74rem;color:var(--ink-soft);line-height:1.4;word-break:break-all;}
+.meta-line a{color:var(--terra);text-decoration:none;}
+.meta-line a:hover{text-decoration:underline;}
+.id-line{font-size:.62rem;font-family:ui-monospace,monospace;color:var(--ink-faint);margin-top:auto;padding-top:8px;}
 
-/* confidence bar */
-.cbar-wrap{display:flex;align-items:center;gap:6px;margin-top:4px;}
-.cbar-bg{flex:1;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;}
+.dossier-main{padding:16px 18px 14px;display:flex;flex-direction:column;gap:12px;}
+
+.source-notice{
+  font-size:.74rem;line-height:1.45;padding:9px 12px;border-radius:var(--radius-sm);
+}
+.source-notice.csv-only{background:#e8f0f4;border-left:3px solid #6a8fa3;color:#3d5563;}
+.source-notice.resume-only{background:var(--sage-soft);border-left:3px solid var(--sage);color:#3d5c4a;}
+.source-notice.mismatch{background:var(--honey-soft);border-left:3px solid var(--honey);color:#6b5420;}
+.data-quality-notice{
+  margin-bottom:10px;padding:10px 12px;border-radius:var(--radius-sm);
+  background:var(--rose-soft);border-left:3px solid var(--rose);color:#7a3a3a;font-size:.78rem;line-height:1.45;
+}
+.unknown-label{color:var(--rose);font-style:italic;}
+
+.source-kind-badge{
+  display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-top:6px;
+}
+.badge-csv{background:#dce8ee;color:#4a6575;}
+.badge-resume{background:var(--sage-soft);color:var(--sage);}
+.badge-merged{background:var(--paper-deep);color:var(--ink-soft);}
+.badge-mismatch{background:var(--honey-soft);color:#8a6420;}
+
+.sections-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;}
+@media(max-width:900px){.sections-grid{grid-template-columns:1fr;}}
+.sec-block{}
+.sec-label{
+  font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-faint);margin-bottom:6px;padding-bottom:4px;
+  border-bottom:1px solid var(--paper-deep);
+}
+.sec-full{grid-column:1/-1;}
+
+.cbar-wrap{display:flex;align-items:center;gap:6px;margin-top:5px;}
+.cbar-bg{flex:1;height:3px;background:var(--paper-deep);border-radius:2px;overflow:hidden;}
 .cbar-fill{height:100%;border-radius:2px;}
-.cval{font-size:0.68rem;color:var(--muted);width:28px;text-align:right;}
+.cval{font-size:.65rem;color:var(--ink-faint);width:30px;text-align:right;}
 
-/* skills */
 .skills-wrap{display:flex;flex-wrap:wrap;gap:5px;}
 .skill-tag{
   display:inline-flex;align-items:center;gap:4px;
-  padding:3px 10px 3px 7px;
-  background:var(--accent-soft);color:var(--accent);
-  border-radius:20px;font-size:0.75rem;font-weight:500;cursor:default;
+  padding:3px 9px 3px 6px;border-radius:6px;font-size:.72rem;font-weight:500;
+  background:var(--paper-deep);color:var(--ink);border:1px solid var(--card-edge);
 }
-.cdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.cdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
 
-/* experience */
-.exp-item{margin-bottom:8px;}
+.exp-item{margin-bottom:7px;}
 .exp-item:last-child{margin-bottom:0;}
-.exp-title{font-size:0.85rem;font-weight:600;}
-.exp-meta{font-size:0.74rem;color:var(--muted);margin-top:1px;}
+.exp-title{font-size:.82rem;font-weight:600;}
+.exp-meta{font-size:.72rem;color:var(--ink-soft);margin-top:1px;}
 .current-badge{
-  display:inline-block;font-size:0.65rem;font-weight:600;
-  background:var(--green-bg);color:var(--green);padding:1px 7px;
-  border-radius:20px;margin-left:5px;vertical-align:middle;
+  font-size:.6rem;font-weight:700;background:var(--sage-soft);color:var(--sage);
+  padding:1px 6px;border-radius:4px;margin-left:5px;vertical-align:middle;
 }
-.exp-summary{font-size:0.75rem;color:#475569;margin-top:3px;line-height:1.5;}
+.exp-summary{font-size:.72rem;color:var(--ink-soft);margin-top:3px;line-height:1.45;}
+.edu-inst{font-size:.82rem;font-weight:600;}
+.edu-deg{font-size:.72rem;color:var(--ink-soft);}
 
-/* education */
-.edu-inst{font-size:0.85rem;font-weight:600;}
-.edu-deg{font-size:0.75rem;color:var(--muted);}
-
-/* disagree */
 .disagree-badge{
-  font-size:0.68rem;background:var(--yellow-bg);color:#92400e;
-  padding:1px 7px;border-radius:20px;display:inline-block;margin-left:6px;
+  font-size:.65rem;background:var(--honey-soft);color:#7a5a18;
+  padding:2px 7px;border-radius:4px;margin-left:5px;
+}
+.reasoning-box{
+  font-size:.72rem;color:var(--ink-soft);margin-top:5px;line-height:1.45;
+  padding:8px 10px;background:var(--paper);border-radius:var(--radius-sm);
+  border-left:3px solid var(--honey);
 }
 
-/* provenance */
 details summary{
-  font-size:0.73rem;font-weight:600;color:var(--muted);
-  cursor:pointer;user-select:none;list-style:none;
-  display:flex;align-items:center;gap:5px;padding:4px 0;
+  font-size:.72rem;font-weight:600;color:var(--ink-soft);cursor:pointer;
+  list-style:none;display:flex;align-items:center;gap:6px;padding:4px 0;
 }
 details summary::-webkit-details-marker{display:none;}
-details summary::before{content:"▶";font-size:0.58rem;transition:transform .15s;}
+details summary::before{content:"›";font-size:.9rem;transition:transform .15s;}
 details[open] summary::before{transform:rotate(90deg);}
-.prov-table{width:100%;border-collapse:collapse;font-size:0.72rem;margin-top:6px;}
+.prov-table{width:100%;border-collapse:collapse;font-size:.7rem;margin-top:6px;}
 .prov-table th{
-  text-align:left;padding:4px 6px;background:#f8fafc;
-  color:var(--muted);font-size:0.65rem;text-transform:uppercase;letter-spacing:.04em;
+  text-align:left;padding:5px 8px;background:var(--paper-deep);
+  color:var(--ink-faint);font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;
 }
-.prov-table td{padding:4px 6px;border-top:1px solid var(--border);}
-.prov-table code{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:0.7rem;}
+.prov-table td{padding:5px 8px;border-top:1px solid var(--paper-deep);}
+.prov-table code{font-family:ui-monospace,monospace;font-size:.68rem;background:var(--paper-deep);padding:1px 5px;border-radius:4px;}
 
-/* ── Raw JSON tab ─────────────────────────────────────────────── */
-.json-view{
-  background:#1e293b;color:#e2e8f0;border-radius:10px;
-  padding:18px;font-family:"SF Mono",Consolas,monospace;
-  font-size:0.76rem;line-height:1.7;overflow:auto;white-space:pre;
-  max-height:70vh;
-}
-.json-toolbar{
-  display:flex;align-items:center;gap:10px;margin-bottom:12px;
-}
+/* JSON panel — warm, not dark */
+.json-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
 .copy-btn{
-  padding:5px 14px;border:1px solid var(--border);border-radius:8px;
-  background:var(--surface);font-size:0.78rem;cursor:pointer;
+  padding:6px 14px;border:1px solid var(--card-edge);border-radius:var(--radius-sm);
+  background:var(--card);font-size:.76rem;cursor:pointer;color:var(--ink-soft);
 }
-.copy-btn:hover{background:var(--accent-soft);color:var(--accent);}
-
-/* ── Scrollbar ─────────────────────────────────────────────────── */
-::-webkit-scrollbar{width:5px;height:5px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
-
-/* ── Responsive ─────────────────────────────────────────────────── */
-@media(max-width:768px){
-  .sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border);}
-  .app{flex-direction:column;}
+.copy-btn:hover{border-color:var(--sage);color:var(--sage);}
+.json-view{
+  background:#fffdf9;color:#3d3832;border:1px solid var(--card-edge);
+  border-radius:var(--radius);padding:18px;
+  font-family:ui-monospace,monospace;font-size:.74rem;line-height:1.65;
+  overflow:auto;white-space:pre;max-height:72vh;
 }
+
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-thumb{background:#cfc7bb;border-radius:4px;}
 </style>
 </head>
 <body>
-<div class="app">
+<div class="shell">
 
-  <!-- ── Sidebar ──────────────────────────────────────────────── -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <h1>🔬 Candidate Transformer</h1>
-      <p>Eightfold take-home pipeline tester</p>
+  <header class="masthead">
+    <div class="brand-block">
+      <h1><span class="brand-mark">PM</span>Profile Merge Lab</h1>
+      <p>Upload recruiter CSV and resumes — see merged profiles, source attribution, and confidence in one place.</p>
     </div>
-
-    <div class="sidebar-body">
-
-      <!-- CSV upload -->
-      <div class="form-section">
-        <div class="form-label"><span class="required-dot"></span> Recruiter CSV</div>
-        <div class="drop-zone" id="csv-zone">
-          <input type="file" id="csv-input" accept=".csv" />
-          <div class="dz-icon">📋</div>
-          <div class="dz-text">Drop CSV or click to browse</div>
-          <div class="dz-files" id="csv-files"></div>
-        </div>
-      </div>
-
-      <!-- Resume upload -->
-      <div class="form-section">
-        <div class="form-label"><span class="required-dot"></span> Resumes (PDF / DOCX)</div>
-        <div class="drop-zone" id="resume-zone">
-          <input type="file" id="resume-input" accept=".pdf,.docx,.doc,.txt" multiple />
-          <div class="dz-icon">📄</div>
-          <div class="dz-text">Drop resumes or click to browse<br><span style="font-size:0.7rem;opacity:.7">PDF · DOCX · TXT</span></div>
-          <div class="dz-files" id="resume-files"></div>
-        </div>
-      </div>
-
-      <!-- Config -->
-      <div class="form-section">
-        <div class="form-label">Projection Config <span style="font-weight:400;font-style:italic;color:var(--muted)">(optional)</span></div>
-        <div class="config-tabs">
-          <div class="cfg-tab active" data-tab="default" onclick="loadPreset('default',this)">Default</div>
-          <div class="cfg-tab" data-tab="custom" onclick="loadPreset('custom',this)">Custom</div>
-          <div class="cfg-tab" data-tab="edit" onclick="activateCfgTab(this)">Edit</div>
-          <div class="cfg-tab" data-tab="upload" onclick="activateCfgTab(this)">Upload</div>
-        </div>
-        <textarea class="config-editor" id="config-editor" spellcheck="false" oninput="validateConfig()"></textarea>
-        <div style="display:none">
-          <input type="file" id="config-upload-input" accept=".json" onchange="loadConfigFile(this)"/>
-        </div>
-        <div class="config-status" id="config-status"></div>
-      </div>
-
+    <div class="view-switch" id="view-tabs" style="display:none">
+      <button class="active" onclick="switchView('cards',this)">Profiles</button>
+      <button onclick="switchView('json',this)">Raw JSON</button>
     </div>
+  </header>
 
-    <div class="sidebar-footer">
-      <button class="run-btn" id="run-btn" onclick="runPipeline()">
-        <div class="spinner" id="spinner"></div>
-        <span id="run-label">▶ Run Pipeline</span>
-      </button>
-      <button class="sample-btn" onclick="runOnSamples()">🗂 Run on built-in sample data</button>
-    </div>
-  </aside>
-
-  <!-- ── Main panel ─────────────────────────────────────────── -->
-  <div class="main">
-    <div class="topbar">
-      <h2 id="results-heading">Results</h2>
-      <div class="tab-bar" id="view-tabs" style="display:none">
-        <button class="tab-btn active" onclick="switchView('cards',this)">Cards</button>
-        <button class="tab-btn" onclick="switchView('json',this)">Raw JSON</button>
+  <section class="control-deck">
+    <div class="panel">
+      <div class="panel-label"><span class="req"></span> Recruiter CSV</div>
+      <div class="drop-zone" id="csv-zone">
+        <input type="file" id="csv-input" accept=".csv"/>
+        <div class="dz-title">Drop or choose CSV</div>
+        <div class="dz-hint">Column headers mapped automatically</div>
+        <div class="dz-files" id="csv-files"></div>
       </div>
     </div>
 
-    <div class="status-bar" id="status-bar">
-      <span id="status-msg"></span>
-      <span class="close" onclick="closeStatus()">✕</span>
-    </div>
-
-    <div class="main-body" id="main-body">
-      <div class="empty-state">
-        <div class="big-icon">🧬</div>
-        <h3>No profiles yet</h3>
-        <p>Upload a recruiter CSV and at least one resume,<br>then click <strong>Run Pipeline</strong>.<br><br>
-        Or click <strong>Run on built-in sample data</strong> to try<br>the three pre-generated sample candidates.</p>
+    <div class="panel">
+      <div class="panel-label"><span class="req"></span> Resume files</div>
+      <div class="drop-zone" id="resume-zone">
+        <input type="file" id="resume-input" accept=".pdf,.docx,.doc,.txt" multiple/>
+        <div class="dz-title">Drop or choose resumes</div>
+        <div class="dz-hint">PDF · DOCX · TXT — multiple allowed</div>
+        <div class="dz-files" id="resume-files"></div>
       </div>
     </div>
+
+    <div class="panel">
+      <div class="panel-label">Projection config <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+      <div class="config-row">
+        <div class="cfg-tab active" data-tab="default" onclick="loadPreset('default',this)">Default</div>
+        <div class="cfg-tab" data-tab="custom" onclick="loadPreset('custom',this)">Custom</div>
+        <div class="cfg-tab" data-tab="edit" onclick="activateCfgTab(this)">Edit</div>
+        <div class="cfg-tab" data-tab="upload" onclick="activateCfgTab(this)">Upload</div>
+      </div>
+      <textarea class="config-editor" id="config-editor" spellcheck="false"></textarea>
+      <input type="file" id="config-upload-input" accept=".json" onchange="loadConfigFile(this)" style="display:none"/>
+      <div class="config-status" id="config-status"></div>
+      <div class="action-row">
+        <button class="run-btn" id="run-btn" onclick="runPipeline()">
+          <div class="spinner" id="spinner"></div>
+          <span id="run-label">Run merge</span>
+        </button>
+        <button class="sample-btn" onclick="runOnSamples()" title="Run merge on test_data_v2 (recruiter CSV + resumes)">Sample input</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="status-bar" id="status-bar">
+    <span id="status-msg"></span>
+    <span class="close" onclick="closeStatus()">✕</span>
   </div>
+
+  <main class="workspace" id="main-body">
+    <div class="empty-state">
+      <div class="illus">∅</div>
+      <h3>Nothing merged yet</h3>
+      <p>Add a CSV and at least one resume above, then hit <strong>Run merge</strong>. Or click <strong>Sample input</strong> to load <code>test_data_v2</code>.</p>
+    </div>
+  </main>
 
 </div>
 
 <script>
-// ── State ──────────────────────────────────────────────────────
 let csvFile = null;
 let resumeFiles = [];
 let currentView = 'cards';
 let lastResults = null;
+let lastCanonical = null;
+let lastProfileMeta = null;
+let lastBatchSummary = null;
+let reprojectTimer = null;
+let reprojecting = false;
+let sourceFilters = { merged: true, csv_only: true, resume_only: true };
 
-// ── File inputs ────────────────────────────────────────────────
 const csvInput = document.getElementById('csv-input');
 const resumeInput = document.getElementById('resume-input');
 
@@ -383,10 +420,8 @@ csvInput.addEventListener('change', () => {
   csvFile = csvInput.files[0] || null;
   renderCsvChip();
 });
-
 resumeInput.addEventListener('change', () => {
-  const added = Array.from(resumeInput.files);
-  added.forEach(f => {
+  Array.from(resumeInput.files).forEach(f => {
     if (!resumeFiles.find(x => x.name === f.name)) resumeFiles.push(f);
   });
   renderResumeChips();
@@ -395,29 +430,19 @@ resumeInput.addEventListener('change', () => {
 function renderCsvChip() {
   const el = document.getElementById('csv-files');
   el.innerHTML = csvFile
-    ? `<span class="file-chip">📋 ${esc(csvFile.name)}<span class="remove" onclick="removeCsv()">✕</span></span>`
+    ? `<span class="file-chip">${esc(csvFile.name)}<span class="remove" onclick="removeCsv()">✕</span></span>`
     : '';
 }
-
-function removeCsv() {
-  csvFile = null;
-  csvInput.value = '';
-  renderCsvChip();
-}
+function removeCsv() { csvFile = null; csvInput.value = ''; renderCsvChip(); }
 
 function renderResumeChips() {
   const el = document.getElementById('resume-files');
   el.innerHTML = resumeFiles.map((f, i) =>
-    `<span class="file-chip">📄 ${esc(f.name)}<span class="remove" onclick="removeResume(${i})">✕</span></span>`
+    `<span class="file-chip">${esc(f.name)}<span class="remove" onclick="removeResume(${i})">✕</span></span>`
   ).join('');
 }
+function removeResume(i) { resumeFiles.splice(i, 1); renderResumeChips(); }
 
-function removeResume(i) {
-  resumeFiles.splice(i, 1);
-  renderResumeChips();
-}
-
-// drag-over style
 ['csv-zone','resume-zone'].forEach(id => {
   const el = document.getElementById(id);
   el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag-over'); });
@@ -425,362 +450,460 @@ function removeResume(i) {
   el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drag-over'); });
 });
 
-// ── Config presets ────────────────────────────────────────────
 const cfgEditor = document.getElementById('config-editor');
+cfgEditor.addEventListener('input', () => {
+  validateConfig();
+  scheduleReproject();
+});
 
 async function loadPreset(name, tabEl) {
   activateCfgTab(tabEl);
   try {
     const r = await fetch(`/api/config/${name}`);
     if (!r.ok) throw new Error(await r.text());
-    const cfg = await r.json();
-    cfgEditor.value = JSON.stringify(cfg, null, 2);
+    cfgEditor.value = JSON.stringify(await r.json(), null, 2);
     validateConfig();
-  } catch(e) {
-    showStatus('error', `Could not load preset: ${e.message}`);
-  }
+    scheduleReproject();
+  } catch(e) { showStatus('error', `Could not load preset: ${e.message}`); }
 }
 
 function activateCfgTab(el) {
   document.querySelectorAll('.cfg-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  if (el.dataset.tab === 'upload') {
-    document.getElementById('config-upload-input').click();
-  }
+  if (el.dataset.tab === 'upload') document.getElementById('config-upload-input').click();
 }
 
 function loadConfigFile(input) {
   const f = input.files[0];
   if (!f) return;
   const r = new FileReader();
-  r.onload = e => {
-    cfgEditor.value = e.target.result;
-    validateConfig();
-  };
+  r.onload = e => { cfgEditor.value = e.target.result; validateConfig(); scheduleReproject(); };
   r.readAsText(f);
 }
 
 function validateConfig() {
   const st = document.getElementById('config-status');
   const raw = cfgEditor.value.trim();
-  if (!raw) { st.textContent = ''; return true; }
+  if (!raw) { st.textContent = lastCanonical ? 'Using built-in default config' : ''; return true; }
   try {
     JSON.parse(raw);
-    st.textContent = '✓ valid JSON';
+    st.textContent = lastCanonical ? 'Valid JSON — projection will update' : 'Valid JSON';
     st.className = 'config-status ok';
     return true;
   } catch(e) {
-    st.textContent = '✗ ' + e.message;
+    st.textContent = e.message;
     st.className = 'config-status err';
     return false;
   }
 }
 
-// Load default preset on page load
+function parseConfigOrNull() {
+  const raw = cfgEditor.value.trim();
+  if (!raw) return null;
+  return JSON.parse(raw);
+}
+
+function scheduleReproject() {
+  clearTimeout(reprojectTimer);
+  reprojectTimer = setTimeout(() => applyConfigProjection(), 450);
+}
+
+async function applyConfigProjection() {
+  if (!lastCanonical || !lastCanonical.length || reprojecting) return;
+  if (!validateConfig()) return;
+  reprojecting = true;
+  try {
+    const body = { canonical_profiles: lastCanonical, config: parseConfigOrNull() };
+    const data = await (await fetch('/api/reproject', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })).json();
+    if (!data.ok) {
+      showStatus('error', 'Projection error: ' + (data.error || 'unknown'));
+      return;
+    }
+    lastResults = data.profiles;
+    lastProfileMeta = data.profile_meta || null;
+    lastBatchSummary = data.batch_summary || lastBatchSummary;
+    const errN = (data.projection_errors || []).length;
+    let msg = `Projection updated — ${data.profile_count} profile${data.profile_count !== 1 ? 's' : ''}`;
+    if (errN) msg += ` (${errN} skipped — required field missing)`;
+    showStatus(errN ? 'error' : 'success', msg);
+    if (currentView === 'cards') renderCards(lastResults, lastBatchSummary);
+    else renderJson(lastResults);
+  } catch (e) {
+    showStatus('error', 'Re-project failed: ' + e.message);
+  } finally {
+    reprojecting = false;
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   loadPreset('default', document.querySelector('.cfg-tab[data-tab="default"]'));
 });
 
-// ── Status bar ─────────────────────────────────────────────────
 function showStatus(type, msg) {
   const bar = document.getElementById('status-bar');
   bar.className = `status-bar ${type}`;
   document.getElementById('status-msg').textContent = msg;
 }
-function closeStatus() {
-  document.getElementById('status-bar').className = 'status-bar';
-}
+function closeStatus() { document.getElementById('status-bar').className = 'status-bar'; }
 
-// ── Run pipeline ───────────────────────────────────────────────
 async function runPipeline() {
-  if (!csvFile) return showStatus('error', 'Please upload a CSV file first.');
-  if (!resumeFiles.length) return showStatus('error', 'Please upload at least one resume.');
+  if (!csvFile) return showStatus('error', 'Upload a CSV file first.');
+  if (!resumeFiles.length) return showStatus('error', 'Upload at least one resume.');
   const cfgRaw = cfgEditor.value.trim();
-  if (cfgRaw && !validateConfig()) return showStatus('error', 'Fix the config JSON before running.');
-
-  setRunning(true);
-  closeStatus();
-
+  if (cfgRaw && !validateConfig()) return showStatus('error', 'Fix config JSON before running.');
+  setRunning(true); closeStatus();
   const fd = new FormData();
   fd.append('csv_file', csvFile, csvFile.name);
   resumeFiles.forEach(f => fd.append('resume_files', f, f.name));
   if (cfgRaw) fd.append('config_json', cfgRaw);
-
   try {
-    const r = await fetch('/api/run', { method: 'POST', body: fd });
-    const data = await r.json();
+    const data = await (await fetch('/api/run', { method: 'POST', body: fd })).json();
     handleResult(data);
-  } catch(e) {
-    showStatus('error', 'Network error: ' + e.message);
-  } finally {
-    setRunning(false);
-  }
+  } catch(e) { showStatus('error', 'Network error: ' + e.message); }
+  finally { setRunning(false); }
 }
 
 async function runOnSamples() {
   const cfgRaw = cfgEditor.value.trim();
-  if (cfgRaw && !validateConfig()) return showStatus('error', 'Fix the config JSON before running.');
-
-  setRunning(true);
-  closeStatus();
-
+  if (cfgRaw && !validateConfig()) return showStatus('error', 'Fix config JSON before running.');
+  setRunning(true); closeStatus();
   const fd = new FormData();
   if (cfgRaw) fd.append('config_json', cfgRaw);
-
   try {
-    const r = await fetch('/api/run/samples', { method: 'POST', body: fd });
-    const data = await r.json();
-    handleResult(data);
-  } catch(e) {
-    showStatus('error', 'Network error: ' + e.message);
-  } finally {
-    setRunning(false);
-  }
+    const data = await (await fetch('/api/run/samples', { method: 'POST', body: fd })).json();
+    handleResult(data, { sampleSource: 'test_data_v2' });
+  } catch(e) { showStatus('error', 'Network error: ' + e.message); }
+  finally { setRunning(false); }
 }
 
-function handleResult(data) {
+function handleResult(data, opts = {}) {
   if (!data.ok) {
-    showStatus('error', '❌ Pipeline error: ' + data.error);
-    const mb = document.getElementById('main-body');
-    mb.innerHTML = `<div style="background:var(--red-bg);border:1px solid #fecaca;border-radius:10px;padding:18px;font-size:0.78rem;white-space:pre-wrap;color:var(--red)">${esc(data.detail||data.error)}</div>`;
+    showStatus('error', 'Pipeline error: ' + data.error);
+    document.getElementById('main-body').innerHTML =
+      `<div class="batch-banner" style="background:var(--rose-soft);border-color:#e8b4b4;color:var(--rose)">${esc(data.detail||data.error)}</div>`;
     return;
   }
+  lastCanonical = data.canonical_profiles || null;
   lastResults = data.profiles;
-  showStatus('success', `✓ ${data.profile_count} profile${data.profile_count!==1?'s':''} produced`);
-  document.getElementById('results-heading').textContent = `Results · ${data.profile_count} profile${data.profile_count!==1?'s':''}`;
+  lastProfileMeta = data.profile_meta || null;
+  lastBatchSummary = data.batch_summary || null;
+  sourceFilters = { merged: true, csv_only: true, resume_only: true };
+  const errN = (data.projection_errors || []).length;
+  let msg = `${data.profile_count} profile${data.profile_count!==1?'s':''} projected`;
+  if (opts.sampleSource) msg += ` · ${opts.sampleSource}`;
+  if (errN) msg += ` (${errN} skipped — required field missing)`;
+  showStatus(errN ? 'error' : 'success', msg);
   document.getElementById('view-tabs').style.display = 'flex';
-  renderCards(data.profiles);
+  if (currentView === 'cards') renderCards(data.profiles, data.batch_summary);
+  else renderJson(data.profiles);
 }
 
 function setRunning(on) {
-  const btn = document.getElementById('run-btn');
-  const sp = document.getElementById('spinner');
-  const lbl = document.getElementById('run-label');
-  btn.disabled = on;
-  sp.style.display = on ? 'block' : 'none';
-  lbl.textContent = on ? 'Running…' : '▶ Run Pipeline';
+  document.getElementById('run-btn').disabled = on;
+  document.getElementById('spinner').style.display = on ? 'block' : 'none';
+  document.getElementById('run-label').textContent = on ? 'Merging…' : 'Run merge';
 }
 
-// ── View switch ────────────────────────────────────────────────
 function switchView(view, btn) {
   currentView = view;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.view-switch button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  if (view === 'cards') renderCards(lastResults);
+  if (view === 'cards') renderCards(lastResults, lastBatchSummary);
   else renderJson(lastResults);
 }
 
-// ── Cards renderer ─────────────────────────────────────────────
-function renderCards(profiles) {
+function profileKindAt(index) {
+  return lastProfileMeta?.[index]?.source_profile_kind || 'merged';
+}
+
+function filteredProfileEntries() {
+  if (!lastResults || !lastResults.length) return [];
+  return lastResults
+    .map((profile, index) => ({ profile, meta: lastProfileMeta?.[index], index }))
+    .filter(({ meta }) => sourceFilters[meta?.source_profile_kind || 'merged']);
+}
+
+function sourceFiltersHtml() {
+  const filters = [
+    { kind: 'merged', label: 'CSV + Resume', cls: 'filter-merged' },
+    { kind: 'csv_only', label: 'CSV only', cls: 'filter-csv' },
+    { kind: 'resume_only', label: 'Resume only', cls: 'filter-resume' },
+  ];
+  return `<div class="source-filters" role="group" aria-label="Filter by data source">${
+    filters.map(f => `<button type="button" class="source-filter ${f.cls} ${sourceFilters[f.kind] ? 'active' : ''}" data-kind="${f.kind}" onclick="toggleSourceFilter('${f.kind}', this)">${f.label}</button>`).join('')
+  }</div>`;
+}
+
+function resultsCountHtml(shown, total) {
+  if (shown === total) return `<span>${total} profile${total !== 1 ? 's' : ''}</span>`;
+  return `<span>${shown} shown · ${total} total</span>`;
+}
+
+function toggleSourceFilter(kind, btn) {
+  sourceFilters[kind] = !sourceFilters[kind];
+  btn.classList.toggle('active', sourceFilters[kind]);
+  if (currentView === 'cards') renderCards(lastResults, lastBatchSummary);
+  else renderJson(lastResults);
+}
+
+function renderCards(profiles, batchSummary) {
   const mb = document.getElementById('main-body');
   if (!profiles || !profiles.length) {
-    mb.innerHTML = '<div class="empty-state"><div class="big-icon">🤷</div><h3>No profiles returned</h3><p>Check warnings with --verbose flag.</p></div>';
+    mb.innerHTML = '<div class="empty-state"><div class="illus">?</div><h3>No profiles</h3><p>Pipeline returned an empty list.</p></div>';
     return;
   }
-  const grid = document.createElement('div');
-  grid.className = 'profiles-grid';
-  profiles.forEach(p => grid.appendChild(buildCard(p)));
-  mb.innerHTML = '';
-  mb.appendChild(grid);
+  const entries = filteredProfileEntries();
+  const total = profiles.length;
+  let html = `<div class="results-head">
+    <div class="results-head-main"><h2>Candidate profiles</h2>${resultsCountHtml(entries.length, total)}</div>
+    ${sourceFiltersHtml()}
+  </div><div class="profiles-list">`;
+  if (batchSummary && (batchSummary.csv_only || batchSummary.resume_only)) {
+    const mm = batchSummary.manifest_mismatches || 0;
+    let t = `${batchSummary.merged||0} merged · ${batchSummary.csv_only||0} CSV-only · ${batchSummary.resume_only||0} resume-only.`;
+    if (mm) t += ` ${mm} manifest link(s) did not match the same person.`;
+    html += `<div class="batch-banner">${esc(t)}</div>`;
+  }
+  if (!entries.length) {
+    html += `<div class="empty-state" style="margin:24px auto"><div class="illus">∅</div><h3>No profiles match</h3><p>Turn on at least one source filter above to see candidate cards.</p></div>`;
+  } else {
+    entries.forEach(({ profile, meta }) => { html += buildDossier(profile, meta); });
+  }
+  html += '</div>';
+  mb.innerHTML = html;
 }
 
-function buildCard(p) {
-  const card = document.createElement('div');
-  card.className = 'card';
-  const oc = p.overall_confidence || 0;
-  card.innerHTML = `
-    ${cardHeader(p, oc)}
-    <div class="card-body">
-      ${yeSection(p)}
-      ${skillsSection(p)}
-      ${expSection(p)}
-      ${eduSection(p)}
-      ${provSection(p)}
-    </div>`;
-  return card;
+function sourceNoticeHtml(meta) {
+  const notice = meta?.source_notice;
+  if (!notice) return '';
+  const kind = meta?.source_profile_kind || 'merged';
+  const isMismatch = notice.includes('do not match');
+  const cls = isMismatch ? 'mismatch' : (kind === 'csv_only' ? 'csv-only' : (kind === 'resume_only' ? 'resume-only' : ''));
+  return `<div class="source-notice ${cls}">${esc(notice)}</div>`;
 }
 
-function cardHeader(p, oc) {
+function dataQualityHtml(meta) {
+  const note = meta?.data_quality_notice;
+  if (!note) return '';
+  return `<div class="data-quality-notice">${esc(note)}</div>`;
+}
+
+function sourceKindBadge(meta) {
+  const kind = meta?.source_profile_kind || 'merged';
+  const notice = meta?.source_notice || '';
+  const isMismatch = notice.includes('do not match');
+  const unreadable = notice.includes('empty, corrupted');
+  if (isMismatch) return `<span class="source-kind-badge badge-mismatch">CSV ≠ Resume</span>`;
+  if (unreadable) return `<span class="source-kind-badge badge-mismatch">Unreadable resume</span>`;
+  if (kind === 'csv_only') return `<span class="source-kind-badge badge-csv">Not in resume</span>`;
+  if (kind === 'resume_only') return `<span class="source-kind-badge badge-resume">Not in CSV</span>`;
+  return `<span class="source-kind-badge badge-merged">CSV + Resume</span>`;
+}
+
+function profileTitle(p, meta) {
+  const title = p.full_name || p.person_label || p.name;
+  if (title) return title;
+  if (meta?.resume_filename) return `Unreadable resume (${meta.resume_filename})`;
+  if (meta?.csv_row_number) return `Empty CSV row ${meta.csv_row_number}`;
+  return 'Unknown';
+}
+
+function profileTitleHtml(p, meta) {
+  const title = profileTitle(p, meta);
+  const isUnknown = title === 'Unknown' || title.startsWith('Unreadable') || title.startsWith('Empty CSV');
+  return isUnknown ? `<span class="unknown-label">${esc(title)}</span>` : esc(title);
+}
+
+function profileEmail(p) {
+  if (p.primary_email) return p.primary_email;
+  if (p.contact_mail) return p.contact_mail;
+  if (Array.isArray(p.emails)) return p.emails.filter(Boolean).join(', ');
+  return p.emails || '';
+}
+
+function profilePhone(p) {
+  if (p.phone) return p.phone;
+  const parts = [...(p.phones || []), ...(p.phones_raw || [])].filter(Boolean);
+  return parts.join(', ');
+}
+
+function buildDossier(p, meta) {
+  const hasOverall = 'overall_confidence' in p;
+  const oc = hasOverall ? (p.overall_confidence || 0) : null;
   const loc = p.location ? [p.location.city,p.location.region,p.location.country].filter(Boolean).join(', ') : '';
-  const emailHtml = (p.emails||[]).length ? `<span class="mchip">✉ ${esc((p.emails||[]).join(', '))}</span>` : '';
-  const phones = p.phones||[];
-  const phoneHtml = phones.map(ph => {
-    const raw = !ph.startsWith('+');
-    return `<span class="mchip">📞 ${esc(ph)}${raw?'<span class="raw-phone" title="No country code — kept raw, not guessed"> ⚠</span>':''}</span>`;
-  }).join('');
-  const locHtml = loc ? `<span class="mchip">📍 ${esc(loc)}</span>` : '';
+  const emails = profileEmail(p);
+  const phones = profilePhone(p);
   const links = p.links||{};
-  const linksHtml = [
-    links.linkedin ? `<span class="mchip">🔗 <a href="${esc(links.linkedin)}" target="_blank">LinkedIn</a></span>` : '',
-    links.github ? `<span class="mchip">🐙 <a href="${esc(links.github)}" target="_blank">GitHub</a></span>` : '',
-    links.portfolio ? `<span class="mchip">🌐 <a href="${esc(links.portfolio)}" target="_blank">Portfolio</a></span>` : '',
-  ].join('');
-  const idShort = (p.candidate_id||'').slice(0,24)+'…';
-  return `<div class="card-header">
-    <div class="name-row">
+  let linkLines = '';
+  if (links.linkedin) linkLines += `<div class="meta-line"><a href="${esc(links.linkedin)}" target="_blank">LinkedIn</a></div>`;
+  if (links.github) linkLines += `<div class="meta-line"><a href="${esc(links.github)}" target="_blank">GitHub</a></div>`;
+
+  return `<article class="dossier">
+    <aside class="dossier-side">
       <div>
-        <h2>${esc(p.full_name||p.primary_email||'Unknown')}</h2>
+        <h2>${profileTitleHtml(p, meta)}</h2>
         ${p.headline ? `<div class="hl">${esc(p.headline)}</div>` : ''}
+        ${meta ? sourceKindBadge(meta) : ''}
       </div>
-      <div class="score-ring" style="${ringStyle(oc)}" title="Overall confidence">${Math.round(oc*100)}%</div>
+      ${hasOverall ? `<div class="score-pill" style="${ringStyle(oc)}" title="Overall confidence">${Math.round(oc*100)}% trust</div>` : ''}
+      <div class="meta-list">
+        ${emails ? `<div class="meta-line">${esc(emails)}</div>` : ''}
+        ${phones ? `<div class="meta-line">${esc(phones)}</div>` : ''}
+        ${loc ? `<div class="meta-line">${esc(loc)}</div>` : ''}
+        ${linkLines}
+        ${meta?.resume_filename ? `<div class="meta-line" style="font-size:.72rem;color:var(--ink-faint)">Resume: ${esc(meta.resume_filename)}</div>` : ''}
+        ${meta?.csv_row_number ? `<div class="meta-line" style="font-size:.72rem;color:var(--ink-faint)">CSV row ${esc(meta.csv_row_number)}</div>` : ''}
+      </div>
+      ${(meta?.candidate_id || p.candidate_id) ? `<div class="id-line" title="candidate_id">${esc(String(meta?.candidate_id || p.candidate_id).slice(0,28))}…</div>` : ''}
+    </aside>
+    <div class="dossier-main">
+      ${dataQualityHtml(meta)}
+      ${sourceNoticeHtml(meta)}
+      <div class="sections-grid">
+        ${yeSection(p)}
+        ${skillsSection(p)}
+        ${expSection(p)}
+        ${eduSection(p)}
+        ${extraProjectedSection(p)}
+        ${'provenance' in p ? `<div class="sec-block sec-full">${provSection(p)}</div>` : ''}
+      </div>
     </div>
-    <div class="meta-chips">${emailHtml}${phoneHtml}${locHtml}${linksHtml}</div>
-    <div class="id-pill" title="SHA-256 of normalized email">${esc(idShort)}</div>
-  </div>`;
+  </article>`;
+}
+
+function extraProjectedSection(p) {
+  const known = new Set([
+    'full_name','person_label','name','headline','emails','primary_email','contact_mail',
+    'phones','phone','phones_raw','location','links','years_experience','skills',
+    'experience','education','provenance','field_reasoning','overall_confidence',
+    'source_profile_kind','source_notice','candidate_id'
+  ]);
+  const lines = Object.keys(p)
+    .filter(k => !k.endsWith('_confidence') && !known.has(k))
+    .map(k => {
+      const v = p[k];
+      const shown = Array.isArray(v) ? v.join(', ') : (v == null ? '—' : String(v));
+      return `<div class="sec-block"><div class="sec-label">${esc(k)}</div><div style="font-size:.84rem">${esc(shown)}</div>${cbar(p[k + '_confidence'], k)}</div>`;
+    });
+  return lines.join('');
 }
 
 function yeSection(p) {
+  if (!('years_experience' in p)) return '';
   const ye = p.years_experience ?? p['years_experience'];
-  if (ye == null) return '';
+  const reasoning = (p.field_reasoning||{})['years_experience'];
+  const suppressed = ye == null && reasoning;
+  if (ye == null && !suppressed) return '';
   const conf = p.years_experience_confidence || 0;
-  const provs = p.provenance||[];
-  const yep = provs.find(x=>x.field==='years_experience');
-  const disagree = yep && yep.method && yep.method.includes('disagreement')
-    ? `<span class="disagree-badge" title="${esc(yep.method)}">⚠ sources disagree</span>` : '';
-  return `<div>
-    <div class="sec-title">Years of Experience</div>
-    <div style="font-size:0.9rem;font-weight:600">${ye} yrs ${disagree}</div>
-    ${cbar(conf,'years_experience')}
-  </div>`;
+  const yep = (p.provenance||[]).find(x=>x.field==='years_experience');
+  const disagree = yep && yep.method && (yep.method.includes('disagreement')||yep.method==='suppressed_disagreement')
+    ? `<span class="disagree-badge">sources disagree</span>` : '';
+  const body = suppressed
+    ? `<div style="font-size:.8rem;color:var(--ink-soft)">Not asserted</div><div class="reasoning-box">${esc(reasoning)}</div>`
+    : `<div style="font-size:.88rem;font-weight:600">${ye} years ${disagree}</div>`;
+  return `<div class="sec-block"><div class="sec-label">Experience (years)</div>${body}${cbar(conf,'years')}</div>`;
 }
 
 function skillsSection(p) {
   if (!('skills' in p)) return '';
   const skills = p.skills || [];
-  const conf = p.skills_confidence;
   const tags = skills.length
     ? skills.map(s => {
         const name = typeof s==='string'?s:(s.name||s);
         const sc = typeof s==='object'?(s.confidence||0.7):0.7;
-        const src = typeof s==='object'&&s.sources?s.sources.join(', '):'resume';
-        return `<span class="skill-tag" title="source: ${esc(src)} · ${Math.round(sc*100)}% confidence">${cdot(sc)}${esc(name)}</span>`;
+        return `<span class="skill-tag">${cdot(sc)}${esc(name)}</span>`;
       }).join('')
-    : '<span style="font-size:0.78rem;color:var(--muted)">— (none)</span>';
-  return `<div>
-    <div class="sec-title">Skills</div>
-    <div class="skills-wrap">${tags}</div>
-    ${cbar(conf,'skills avg')}
-  </div>`;
+    : '<span style="font-size:.76rem;color:var(--ink-faint)">—</span>';
+  return `<div class="sec-block"><div class="sec-label">Skills</div><div class="skills-wrap">${tags}</div>${'skills_confidence' in p ? cbar(p.skills_confidence,'skills') : ''}</div>`;
 }
 
 function expSection(p) {
   const allExp = p.experience||[];
-  // dedupe: show resume entries first, skip csv-only duplicates
   const seen = new Set();
   const deduped = allExp.filter(e => {
     if (e.source==='resume') { seen.add((e.company||'')+'|'+(e.title||'')); return true; }
-    const k = (e.company||'')+'|'+(e.title||'');
-    return !seen.has(k);
+    return !seen.has((e.company||'')+'|'+(e.title||''));
   });
   if (!deduped.length) return '';
   const items = deduped.slice(0,4).map(e => {
     const dates = [e.start, e.end||(e.is_current?'Present':null)].filter(Boolean).join(' – ');
-    return `<div class="exp-item">
-      <div class="exp-title">${esc(e.title||'—')}${e.is_current?'<span class="current-badge">Current</span>':''}</div>
+    return `<div class="exp-item"><div class="exp-title">${esc(e.title||'—')}${e.is_current?'<span class="current-badge">Now</span>':''}</div>
       <div class="exp-meta">${esc(e.company||'')}${dates?' · '+esc(dates):''}</div>
-      ${e.summary?`<div class="exp-summary">${esc(e.summary.slice(0,120))}${e.summary.length>120?'…':''}</div>`:''}
-    </div>`;
+      ${e.summary?`<div class="exp-summary">${esc(e.summary.slice(0,140))}${e.summary.length>140?'…':''}</div>`:''}</div>`;
   }).join('');
-  return `<div>
-    <div class="sec-title">Experience</div>
-    ${items}
-    ${cbar(p.experience_confidence||0.75,'experience')}
-  </div>`;
+  return `<div class="sec-block"><div class="sec-label">Work history</div>${items}${cbar(p.experience_confidence||0.75,'exp')}</div>`;
 }
 
 function eduSection(p) {
   if (!('education' in p)) return '';
   const edu = p.education || [];
   const items = edu.length
-    ? edu.map(e => `<div>
-    <div class="edu-inst">${esc(e.institution||'—')}</div>
-    <div class="edu-deg">${[e.degree,e.field,e.end_year].filter(Boolean).join(' · ')}</div>
-  </div>`).join('')
-    : '<span style="font-size:0.78rem;color:var(--muted)">— (none)</span>';
-  return `<div>
-    <div class="sec-title">Education</div>
-    ${items}
-    ${cbar(p.education_confidence,'education')}
-  </div>`;
+    ? edu.map(e => `<div><div class="edu-inst">${esc(e.institution||'—')}</div><div class="edu-deg">${[e.degree,e.field,e.end_year].filter(Boolean).join(' · ')}</div></div>`).join('')
+    : '<span style="font-size:.76rem;color:var(--ink-faint)">—</span>';
+  return `<div class="sec-block"><div class="sec-label">Education</div>${items}${cbar(p.education_confidence,'edu')}</div>`;
 }
 
 function provSection(p) {
   const prov = p.provenance||[];
   if (!prov.length) return '';
-  const rows = prov.map(pr => `<tr>
-    <td>${esc(pr.field)}</td>
-    <td><code>${esc(pr.source)}</code></td>
-    <td><code>${esc(pr.method)}</code></td>
-  </tr>`).join('');
-  return `<div>
-    <details>
-      <summary>Provenance &amp; Sources (${prov.length})</summary>
-      <table class="prov-table">
-        <thead><tr><th>Field</th><th>Source</th><th>Method</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </details>
-  </div>`;
+  const rows = prov.map(pr => `<tr><td>${esc(pr.field)}</td><td><code>${esc(pr.source)}</code></td><td><code>${esc(pr.method)}</code></td></tr>`).join('');
+  return `<details><summary>Source attribution (${prov.length} fields)</summary>
+    <table class="prov-table"><thead><tr><th>Field</th><th>Source</th><th>Method</th></tr></thead><tbody>${rows}</tbody></table></details>`;
 }
 
-// ── JSON renderer ──────────────────────────────────────────────
 function renderJson(profiles) {
   const mb = document.getElementById('main-body');
-  const pretty = JSON.stringify(profiles, null, 2);
-  mb.innerHTML = `
+  if (!profiles || !profiles.length) {
+    mb.innerHTML = '<div class="empty-state"><div class="illus">?</div><h3>No profiles</h3><p>Pipeline returned an empty list.</p></div>';
+    return;
+  }
+  const entries = filteredProfileEntries();
+  const filtered = entries.map(e => e.profile);
+  const total = profiles.length;
+  const pretty = JSON.stringify(filtered, null, 2);
+  mb.innerHTML = `<div class="results-head">
+    <div class="results-head-main"><h2>Raw output</h2>${resultsCountHtml(filtered.length, total)}</div>
+    ${sourceFiltersHtml()}
+  </div>
     <div class="json-toolbar">
-      <span style="font-size:0.83rem;font-weight:600">${(profiles||[]).length} profiles</span>
-      <button class="copy-btn" onclick="copyJson()">📋 Copy JSON</button>
-      <button class="copy-btn" onclick="downloadJson()">⬇ Download</button>
+      <button class="copy-btn" onclick="copyJson()">Copy</button>
+      <button class="copy-btn" onclick="downloadJson()">Download</button>
     </div>
-    <div class="json-view" id="json-output">${esc(pretty)}</div>`;
+    <div class="json-view" id="json-output">${filtered.length ? esc(pretty) : '[]  // No profiles match the current source filters'}</div>`;
+}
+
+function visibleProfilesForExport() {
+  return filteredProfileEntries().map(e => e.profile);
 }
 
 function copyJson() {
-  navigator.clipboard.writeText(JSON.stringify(lastResults, null, 2));
-  showStatus('success','JSON copied to clipboard');
+  navigator.clipboard.writeText(JSON.stringify(visibleProfilesForExport(), null, 2));
+  showStatus('success', 'Copied to clipboard');
 }
-
 function downloadJson() {
-  const blob = new Blob([JSON.stringify(lastResults, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(visibleProfilesForExport(), null, 2)], {type:'application/json'}));
   a.download = 'profiles.json';
   a.click();
 }
 
-// ── Helpers ────────────────────────────────────────────────────
 function confColor(v) {
-  if (v == null) return '#94a3b8';
-  if (v >= 0.85) return '#16a34a';
-  if (v >= 0.65) return '#d97706';
-  return '#dc2626';
+  if (v == null) return '#9a948c';
+  if (v >= 0.85) return '#5a7d68';
+  if (v >= 0.65) return '#c49a3c';
+  return '#b84a4a';
 }
-
-function ringStyle(v) {
-  const c = confColor(v);
-  return `border-color:${c};color:${c}`;
-}
-
-function cdot(v) {
-  return `<span class="cdot" style="background:${confColor(v)}" title="${v == null ? 'n/a' : Math.round(v*100)+'%'}"></span>`;
-}
-
+function ringStyle(v) { const c = confColor(v); return `border-color:${c};color:${c}`; }
+function cdot(v) { return `<span class="cdot" style="background:${confColor(v)}"></span>`; }
 function cbar(v, label) {
-  if (v == null) {
-    return `<div class="cbar-wrap" title="${label}: not scored">
-      <div class="cbar-bg"></div>
-      <span class="cval" style="color:var(--muted)">n/a</span>
-    </div>`;
-  }
-  const c = confColor(v);
-  const pct = Math.round(v*100);
-  return `<div class="cbar-wrap" title="${label}: ${pct}%">
-    <div class="cbar-bg"><div class="cbar-fill" style="width:${pct}%;background:${c}"></div></div>
-    <span class="cval">${pct}%</span>
-  </div>`;
+  if (v == null) return `<div class="cbar-wrap"><div class="cbar-bg"></div><span class="cval">n/a</span></div>`;
+  const c = confColor(v), pct = Math.round(v*100);
+  return `<div class="cbar-wrap" title="${label} ${pct}%"><div class="cbar-bg"><div class="cbar-fill" style="width:${pct}%;background:${c}"></div></div><span class="cval">${pct}%</span></div>`;
 }
-
 function esc(s) {
   if (s==null) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');

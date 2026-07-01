@@ -1,7 +1,6 @@
 """Stage 6: Configurable output projection layer.
 
 Clean separation: canonical record -> projected output per config.
-Normalization already applied in Stage 3; config 'normalize' is assertion only.
 """
 
 from __future__ import annotations
@@ -32,8 +31,14 @@ def project(profile: CanonicalProfile, config: dict[str, Any]) -> dict[str, Any]
     output: dict[str, Any] = {}
     on_missing = config.get("on_missing", "null")
     include_confidence = config.get("include_confidence", True)
+    include_provenance = config.get("include_provenance", True)
+    field_specs = config.get("fields", [])
+    projected_canonical_fields = {
+        _canonical_field_for_confidence(spec.get("from", spec["path"]))
+        for spec in field_specs
+    }
 
-    for field_spec in config.get("fields", []):
+    for field_spec in field_specs:
         path = field_spec["path"]
         from_path = field_spec.get("from", path)
         required = field_spec.get("required", False)
@@ -52,25 +57,42 @@ def project(profile: CanonicalProfile, config: dict[str, Any]) -> dict[str, Any]
         else:
             value = _coerce_type(value, field_type)
             if normalize:
-                _assert_normalize(normalize, field_type, value)
+                value = _apply_normalize(normalize, field_type, value)
 
         output[path] = value
 
         if include_confidence:
             conf_key = f"{path}_confidence"
-            output[conf_key] = profile.field_confidence.get(path)
+            canonical_key = _canonical_field_for_confidence(from_path)
+            output[conf_key] = profile.field_confidence.get(canonical_key)
 
-    if config.get("include_provenance", True):
+    if include_provenance:
         output["provenance"] = [
             {"field": p.field, "source": p.source, "method": p.method}
             for p in profile.provenance
         ]
 
     if include_confidence:
+        reasoning = {
+            k: v
+            for k, v in profile.field_reasoning.items()
+            if k in projected_canonical_fields or k in {spec["path"] for spec in field_specs}
+        }
+        output["field_reasoning"] = reasoning
         output["overall_confidence"] = profile.overall_confidence
 
     _validate_output(output, config)
     return output
+
+
+def _canonical_field_for_confidence(from_path: str) -> str:
+    """Map a config from-path to the canonical field_confidence key."""
+    if "[]" in from_path:
+        return from_path.split("[]", 1)[0].rstrip(".")
+    bracket = from_path.find("[")
+    if bracket != -1:
+        return from_path[:bracket]
+    return from_path
 
 
 def _resolve_path(data: dict[str, Any], path: str) -> Any:
@@ -86,7 +108,15 @@ def _resolve_path(data: dict[str, Any], path: str) -> Any:
             return None
         if not rest:
             return arr
-        return [_resolve_path(item, rest) if isinstance(item, dict) else item for item in arr]
+        out = []
+        for item in arr:
+            if isinstance(item, dict):
+                v = _resolve_path(item, rest)
+                if v is not None and v != "":
+                    out.append(v)
+            elif item is not None and item != "":
+                out.append(item)
+        return out
 
     parts = re.split(r"\.|\[(\d+)\]", path)
     parts = [p for p in parts if p is not None and p != ""]
@@ -130,22 +160,35 @@ def _null_for_type(field_type: str) -> Any:
     return None
 
 
-def _assert_normalize(normalize: str, field_type: str, value: Any) -> None:
-    """Trust Stage 3 — assert/document only, do not re-normalize."""
-    if normalize == "E.164" and field_type == "string" and value:
-        if not str(value).startswith("+"):
-            pass  # raw phones may appear in non-E164 projections
-    if normalize == "canonical" and field_type == "string[]":
-        pass  # already canonicalized in Stage 3
+def _normalize_token(normalize: str) -> str:
+    return normalize.replace(".", "").replace("-", "").upper()
+
+
+def _apply_normalize(normalize: str, field_type: str, value: Any) -> Any:
+    """Apply per-field normalization requested by projection config."""
+    token = _normalize_token(normalize)
+    if token == "E164" and field_type == "string" and value:
+        from pipeline.normalize.phones import normalize_phone
+
+        result = normalize_phone(str(value))
+        return result.e164 or str(value)
+    if token == "CANONICAL" and field_type == "string[]" and isinstance(value, list):
+        from pipeline.normalize.skills import canonicalize_skill
+
+        return [canonicalize_skill(str(v)).name for v in value]
+    return value
 
 
 def _validate_output(output: dict[str, Any], config: dict[str, Any]) -> None:
-    """Basic schema validation against config field types."""
+    """Validate projected output against requested field types."""
+    on_missing = config.get("on_missing", "null")
     for field_spec in config.get("fields", []):
         path = field_spec["path"]
         if path not in output:
-            if config.get("on_missing") == "omit":
+            if on_missing == "omit":
                 continue
+            if field_spec.get("required") and on_missing == "error":
+                raise ProjectionError(f"Required field missing: {path}")
             continue
         value = output[path]
         field_type = field_spec.get("type", "string")
