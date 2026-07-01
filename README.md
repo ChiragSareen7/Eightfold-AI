@@ -1,9 +1,6 @@
 # Candidate Profile Transformer
 
-> **Chirag Sareen · chirag@gmail.com**
-> 🔗 GitHub: https://github.com/ChiragSareen7/Eightfold-AI
-> 🌐 Live demo: **[ADD DEPLOYED URL HERE]**
-> 🎥 Demo video: **[ADD VIDEO LINK HERE]**
+> 🎥 Demo video: (https://drive.google.com/file/d/1Yy_Tvft1jvIg_xafnYJuc5sKYtOTtQI1/view?usp=sharing)
 
 Transforms messy recruiter CSV exports and resume files into clean, trustworthy candidate profiles — with per-field confidence scores, full source provenance, plain-English reasoning for every conflict, and a runtime-configurable JSON output layer.
 
@@ -11,15 +8,16 @@ Transforms messy recruiter CSV exports and resume files into clean, trustworthy 
 
 ## Screenshots
 
-> **📸 1 — Main UI:** Candidate cards with trust scores and source badges. *(Click Sample input, capture 3–4 cards at ~1400px wide.)*
+> **📸 1 — Main UI: <img width="3306" height="500" alt="image" src="https://github.com/user-attachments/assets/eedd3d1d-8dbf-4571-924f-62e0ac439a0e" />
+<img width="3420" height="1702" alt="image" src="https://github.com/user-attachments/assets/c9195533-3ced-41e3-bc78-e88e446a04ff" />
 
 > **📸 2 — "Not Asserted" card:** Years experience nulled due to disagreement, reasoning text visible. *(Expand the reasoning section on a flagged candidate.)*
+<img width="3312" height="680" alt="image" src="https://github.com/user-attachments/assets/d0efdf1e-bfea-419d-bcbc-44e4b0922b72" />
 
 > **📸 3 — Provenance table:** Expanded field/source/method rows on any merged candidate.
+<img width="3348" height="940" alt="image" src="https://github.com/user-attachments/assets/ea169c9b-def7-4810-8eb9-31140a5f0413" />
 
-> **📸 4 — Config switch:** Cards reshaping after switching Default → Custom without re-uploading.
 
-> **📸 5 — CLI terminal:** JSON being written to `out/` after running the CLI command.
 
 ---
 
@@ -62,7 +60,7 @@ Each stage has one job. A corrupted resume in Stage 1 never touches a clean CSV 
 ### Matching that doesn't guess
 Name-only matching causes false merges on common names. This pipeline requires **both email AND normalized phone** to match (confidence 0.97), or a manifest path with at least one identity signal — email, phone, or name fuzzy ≥85% (confidence 0.88). Name alone never merges two records.
 
-> **📸 Screenshot 1 here** — batch summary banner showing merged/csv-only/resume-only split.
+<img width="3306" height="500" alt="image" src="https://github.com/user-attachments/assets/eedd3d1d-8dbf-4571-924f-62e0ac439a0e" />
 
 ### Honest about uncertainty
 Every design decision asks: *is showing this value more honest than showing null?*
@@ -76,15 +74,13 @@ Every design decision asks: *is showing this value more honest than showing null
   "years_experience": "CSV states 8 years; resume calculates to 11.9 years — a 33% gap exceeding the 15% threshold. Neither value is asserted."
 }
 ```
-
-> **📸 Screenshot 2 here** — the "Not Asserted" card with reasoning visible.
+<img width="3312" height="680" alt="image" src="https://github.com/user-attachments/assets/d0efdf1e-bfea-419d-bcbc-44e4b0922b72" />
 
 ### Skills normalisation in three tiers
 1. **Alias dictionary** — `ReactJS` → `React`, `py` → `Python`, `NodeJS` → `Node.js`. Zero compute cost.
 2. **Fuzzy match** — rapidfuzz token-set ratio ≥85% → canonical name (confidence 0.70). Below 85% → kept as written (confidence 0.55) with a reasoning string naming the best match and its score.
 3. **Union, not conflict** — skills from CSV and resume are merged and deduped. Neither source overwrites the other. Junk tokens (`----`, `n/a`, sentence fragments) are filtered before canonicalization.
 
-> **📸 Screenshot here** — skill chips showing high-confidence and kept-original skills side by side.
 
 ### Confidence that means something
 Overall confidence is a weighted mean, not a flat percentage. Key weights:
@@ -104,12 +100,13 @@ Single-source profiles are penalized — without a second source to cross-check,
 ### Reproject without re-uploading
 The canonical record is built once and cached. The JSON config reshapes output at read-time — no re-extraction, no re-merge. Config edits reflect in ~450ms via `/api/reproject`. A recruiter switches between "full schema" and "name + email only" in under a second on the same already-merged data.
 
-> **📸 Screenshot 4 here** — config panel before and after switching.
+<img width="3420" height="1534" alt="image" src="https://github.com/user-attachments/assets/bc8da560-279f-4f79-b2db-422f931f4ff2" />
+
 
 ### Full source attribution, always
 Every field knows where it came from. The provenance table shows `{field, source, method}` — not just "from resume" but specifically `regex_extraction`, `alias_dictionary`, `E164`, `suppressed_disagreement`. Every flag has a `field_reasoning` string in plain English.
 
-> **📸 Screenshot 3 here** — expanded provenance table.
+<img width="3348" height="940" alt="image" src="https://github.com/user-attachments/assets/ea169c9b-def7-4810-8eb9-31140a5f0413" />
 
 ### Batch never crashes
 Failures are caught at the record level. A corrupted file (binary quality gate: >4% control characters) produces a CSV-only profile with a notice banner. Empty CSV rows are skipped with a warning. A projection error on one profile goes to `projection_errors` — the rest complete normally.
@@ -177,5 +174,3 @@ pytest -v
 ```
 
 ---
-
-*Python 3.11 · rapidfuzz · phonenumbers · pdfplumber · python-docx · FastAPI*
