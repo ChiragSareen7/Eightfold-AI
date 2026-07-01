@@ -1,5 +1,5 @@
 # Candidate Profile Transformer
-
+> Live Deployed Link: (https://profile-merge-lab.onrender.com/)
 > 🎥 Demo video: (https://drive.google.com/file/d/1Yy_Tvft1jvIg_xafnYJuc5sKYtOTtQI1/view?usp=sharing)
 
 Transforms messy recruiter CSV exports and resume files into clean, trustworthy candidate profiles — with per-field confidence scores, full source provenance, plain-English reasoning for every conflict, and a runtime-configurable JSON output layer.
