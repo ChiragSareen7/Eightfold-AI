@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/confidence/scoring.py | STAGE: 5 — Confidence & provenance
+# DOES: Per-field confidence, provenance entries, field_reasoning, overall_confidence.
+# IN:   CanonicalProfile from merger (pre-scoring).
+# NEXT → pipeline/project/projector.py (project) | webapp UI (trust % display)
+# =============================================================================
 """Stage 5: Confidence & provenance scoring.
 
 Provenance source tags always reflect which sources actually contributed to each
@@ -320,3 +326,8 @@ def _add_provenance(
     if any(p.field == field for p in profile.provenance):
         return
     profile.provenance.append(ProvenanceEntry(field=field, source=source, method=method))
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: CanonicalProfile with field_confidence, provenance, field_reasoning, overall_confidence
+# NEXT FILE → pipeline/project/projector.py | pipeline/merge/source_annotation.py
+# -----------------------------------------------------------------------------

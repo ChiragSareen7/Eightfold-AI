@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/models/raw.py | STAGE: 1–2 data shapes
+# DOES: Dataclasses for CSV rows, raw resume text, and extracted resume fields.
+# IN:   csv_reader, resume_reader, resume_extractor.
+# NEXT → pipeline/normalize/__init__.py → merge/entity_resolution.py
+# =============================================================================
 """Plain internal records produced by source readers (Stage 1)."""
 
 from __future__ import annotations
@@ -55,3 +61,8 @@ class ExtractedResumeFields:
     education: list[dict[str, Any]] = field(default_factory=list)
     field_methods: dict[str, str] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: RawCsvRecord | RawResumeRecord | ExtractedResumeFields
+# NEXT FILE → pipeline/normalize/__init__.py
+# -----------------------------------------------------------------------------

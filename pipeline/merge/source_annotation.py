@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/merge/source_annotation.py | STAGE: 4 — Post-merge UI labels
+# DOES: Attaches source_notice banners and profile_card_meta for the web UI.
+# IN:   Scored CanonicalProfile list after merge.
+# NEXT → webapp/server.py (profile_meta in API response) → webapp/static/index.html
+# =============================================================================
 """Source profile labels and user-facing notices for CSV vs resume attribution."""
 
 from __future__ import annotations
@@ -118,3 +124,8 @@ def profile_card_meta(profile: CanonicalProfile) -> dict[str, object | None]:
         "manifest_resume": profile.field_meta.get("manifest_resume"),
         "csv_row_number": profile.field_meta.get("csv_row_number"),
     }
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: source_notice, data_quality_notice, profile_card_meta dict
+# NEXT FILE → webapp/server.py → webapp/static/index.html (badges & banners)
+# -----------------------------------------------------------------------------

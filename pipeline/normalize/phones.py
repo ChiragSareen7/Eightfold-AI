@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/normalize/phones.py | STAGE: 3 — Normalize (phones)
+# DOES: Parses phones to E.164 when + present; otherwise keeps raw with low confidence.
+# IN:   Raw phone strings from CSV or resume.
+# NEXT → pipeline/normalize/__init__.py (normalize_csv_record / normalize_extracted_resume)
+# =============================================================================
 """Phone normalization to E.164 — no country guessing."""
 
 from __future__ import annotations
@@ -62,3 +68,8 @@ def normalize_phone(raw: str, default_region: str | None = None) -> PhoneResult:
             confidence=0.3,
             method="unnormalized_parse_error",
         )
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: PhoneResult (e164 | raw, confidence, method)
+# NEXT FILE → pipeline/normalize/__init__.py → merge → confidence/scoring.py
+# -----------------------------------------------------------------------------

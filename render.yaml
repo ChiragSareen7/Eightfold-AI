@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: render.yaml — Render.com deployment blueprint
+# DOES: Defines build + start for Profile Merge Lab web service.
+# IN:   GitHub repo push.
+# NEXT → uvicorn webapp.server:app → webapp/static/index.html
+# =============================================================================
 # Render Blueprint — https://render.com/docs/blueprint-spec
 # Connect repo: New → Blueprint → select Eightfold-AI
 

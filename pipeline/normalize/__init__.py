@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/normalize/__init__.py | STAGE: 3 — Normalize
+# DOES: Normalizes phones, skills, dates, countries on CSV rows and extracted resumes.
+# IN:   RawCsvRecord | ExtractedResumeFields from stages 1–2.
+# NEXT → pipeline/merge/entity_resolution.py (link_csv_resumes_by_manifest, resolve_entities)
+# =============================================================================
 """Stage 3: Normalization — phones, dates, countries, skills."""
 
 from __future__ import annotations
@@ -84,3 +90,8 @@ def normalize_csv_record(record: Any) -> Any:
     record.education_normalized = parse_csv_education(getattr(record, "education", None))
 
     return record
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: normalized RawCsvRecord / ExtractedResumeFields (in place)
+# NEXT FILE → pipeline/merge/entity_resolution.py
+# -----------------------------------------------------------------------------

@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/normalize/countries.py | STAGE: 3 — Normalize (location)
+# DOES: Maps country names/aliases to ISO-3166 alpha-2 codes.
+# IN:   Country string from resume location.
+# NEXT → pipeline/normalize/__init__.py (normalize_extracted_resume)
+# =============================================================================
 """Country normalization to ISO-3166 alpha-2 via static lookup."""
 
 from __future__ import annotations
@@ -38,3 +44,8 @@ def normalize_country(raw: str | None) -> str | None:
     if len(key) == 2 and key.upper() in set(COUNTRY_LOOKUP.values()):
         return key.upper()
     return COUNTRY_LOOKUP.get(key)
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: ISO alpha-2 code or None
+# NEXT FILE → pipeline/normalize/__init__.py → CanonicalProfile.location
+# -----------------------------------------------------------------------------

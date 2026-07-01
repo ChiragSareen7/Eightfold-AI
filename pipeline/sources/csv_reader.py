@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/sources/csv_reader.py | STAGE: 1 — Sources (structured)
+# DOES: Reads recruiter CSV; maps column aliases; skips empty rows.
+# IN:   recruiter.csv on disk.
+# NEXT → pipeline/normalize/__init__.py (normalize_csv_record)
+# =============================================================================
 """Recruiter CSV export reader (Stage 1 — structured source)."""
 
 from __future__ import annotations
@@ -172,3 +178,8 @@ def _parse_row(
         row_number=row_num,
         warnings=warnings,
     )
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: list[RawCsvRecord] — one per CSV row (name, email, phone, company, resume_path, …)
+# NEXT FILE → pipeline/normalize/__init__.py (normalize_csv_record)
+# -----------------------------------------------------------------------------

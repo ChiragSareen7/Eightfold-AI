@@ -1,4 +1,6 @@
-# Core pipeline
+# Dependencies for Render / production deploy.
+# ROUTE: pip install → webapp/server.py (FastAPI + uvicorn)
+# NEXT: render.yaml startCommand runs uvicorn webapp.server:app
 phonenumbers>=8.13.0
 pdfplumber>=0.11.0
 python-docx>=1.1.0

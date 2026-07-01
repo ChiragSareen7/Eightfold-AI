@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/sources/__init__.py
+# DOES: Registry of source reader callables (csv, resume; github stub planned).
+# IN:   source_type string.
+# NEXT → pipeline/sources/csv_reader.py | pipeline/sources/resume_reader.py
+# =============================================================================
 """Source reader registry — add new source types here without touching core pipeline."""
 
 from __future__ import annotations
@@ -25,3 +31,8 @@ def get_reader(source_type: str) -> Callable:
 
     module = importlib.import_module(module_name)
     return getattr(module, func_name)
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: reader callable for a source type
+# NEXT FILE → pipeline/sources/csv_reader.py | pipeline/sources/resume_reader.py
+# -----------------------------------------------------------------------------

@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/models/canonical.py | STAGE: 4–6 internal truth
+# DOES: CanonicalProfile dataclass — full merged candidate before projection.
+# IN:   merge/merger.py; enriched by confidence/scoring.py.
+# NEXT → pipeline/project/projector.py | CanonicalProfile.to_dict() for API cache
+# =============================================================================
 """Internal canonical profile model — separate from projected output."""
 
 from __future__ import annotations
@@ -160,3 +166,8 @@ class CanonicalProfile:
             source_profile_kind=shaped.get("source_profile_kind") or "merged",
             source_notice=shaped.get("source_notice"),
         )
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: CanonicalProfile (to_dict / from_dict for reproject)
+# NEXT FILE → pipeline/confidence/scoring.py → pipeline/project/projector.py
+# -----------------------------------------------------------------------------

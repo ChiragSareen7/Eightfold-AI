@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/merge/merger.py | STAGE: 4 — Merge
+# DOES: Merges SourceRecords in a group into one CanonicalProfile; resolves conflicts.
+# IN:   EntityGroup from entity_resolution.
+# NEXT → pipeline/confidence/scoring.py (score_profile)
+# =============================================================================
 """Stage 4: Merge records into canonical profile with conflict resolution."""
 
 from __future__ import annotations
@@ -573,3 +579,8 @@ def _merge_links(resume_records: list[SourceRecord]) -> dict[str, Any]:
             if other not in links["other"]:
                 links["other"].append(other)
     return links
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: CanonicalProfile (merged candidate — full internal schema)
+# NEXT FILE → pipeline/confidence/scoring.py (score_profile)
+# -----------------------------------------------------------------------------

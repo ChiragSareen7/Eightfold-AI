@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/normalize/dates.py | STAGE: 3 — Normalize (dates)
+# DOES: Normalizes job start/end dates to YYYY-MM; handles Present as ongoing.
+# IN:   Raw date strings from resume experience blocks.
+# NEXT → pipeline/normalize/__init__.py (normalize_extracted_resume)
+# =============================================================================
 """Date normalization to YYYY-MM."""
 
 from __future__ import annotations
@@ -51,3 +57,8 @@ def normalize_end_date(raw: str | None) -> str | None:
     if re.match(r"present|current|now", raw.strip(), re.IGNORECASE):
         return None  # ongoing role — caller sets is_current=True
     return normalize_date(raw)
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: YYYY-MM strings or None for Present
+# NEXT FILE → pipeline/normalize/__init__.py → merge/merger.py (experience[])
+# -----------------------------------------------------------------------------

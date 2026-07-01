@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: data/samples/generate_samples.py
+# DOES: Generates legacy demo DOCX resumes in data/samples/ (not used by web Sample input).
+# IN:   Hardcoded resume text constants.
+# NEXT → data/samples/*.docx (web Sample input uses test_data_v2 instead)
+# =============================================================================
 """Generate sample DOCX resumes for demo and tests."""
 
 from pathlib import Path
@@ -102,3 +108,8 @@ if __name__ == "__main__":
     write_resume("john_smith.docx", JOHN_RESUME)
     write_resume("alice_johnson.docx", ALICE_RESUME)
     print("Sample resumes written to", SAMPLES_DIR)
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: jane_doe.docx, john_smith.docx, alice_johnson.docx on disk
+# NEXT FILE → data/samples/recruiter.csv + manual CLI runs (primary demo: test_data_v2/)
+# -----------------------------------------------------------------------------

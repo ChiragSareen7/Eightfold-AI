@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/project/projector.py | STAGE: 6 — Projection
+# DOES: Maps CanonicalProfile → config-shaped JSON (field select, rename, normalize, on_missing).
+# IN:   CanonicalProfile + projection config JSON.
+# NEXT → webapp/static/index.html (cards/JSON) | CLI stdout/file
+# =============================================================================
 """Stage 6: Configurable output projection layer.
 
 Clean separation: canonical record -> projected output per config.
@@ -202,3 +208,8 @@ def _validate_output(output: dict[str, Any], config: dict[str, Any]) -> None:
             raise ProjectionError(f"Field {path} expected string[], got {type(value)}")
         if field_type == "object[]" and not isinstance(value, list):
             raise ProjectionError(f"Field {path} expected object[], got {type(value)}")
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: dict — projected profile JSON (API/download shape)
+# NEXT FILE → webapp/static/index.html | CLI -o output file
+# -----------------------------------------------------------------------------

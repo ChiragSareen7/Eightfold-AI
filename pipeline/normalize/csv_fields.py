@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/normalize/csv_fields.py | STAGE: 3 — Normalize (CSV extras)
+# DOES: Parses CSV skills, education strings, experience_months → years.
+# IN:   Raw CSV column strings from RawCsvRecord.
+# NEXT → pipeline/normalize/__init__.py (normalize_csv_record)
+# =============================================================================
 """Parse and normalize extra recruiter CSV fields (skills, education, experience)."""
 
 from __future__ import annotations
@@ -104,3 +110,8 @@ def resolve_csv_years_experience(
     if from_years is not None:
         return from_years, "direct_field_csv"
     return None, None
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: skills_normalized[], education_normalized[], years_experience_value
+# NEXT FILE → pipeline/normalize/__init__.py → merge/entity_resolution.py
+# -----------------------------------------------------------------------------

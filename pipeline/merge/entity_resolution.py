@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/merge/entity_resolution.py | STAGE: 4 — Entity resolution
+# DOES: Links CSV rows to resumes; matches by email+phone or manifest validation.
+# IN:   Normalized RawCsvRecord + ExtractedResumeFields as SourceRecord list.
+# NEXT → pipeline/merge/merger.py (merge_group per EntityGroup)
+# =============================================================================
 """Stage 4: Entity resolution — email + phone identity match."""
 
 from __future__ import annotations
@@ -313,3 +319,8 @@ def link_csv_resumes_by_manifest(
         all_records.append(resume_to_source_record(extracted))
 
     return all_records
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: list[EntityGroup] with match_method (exact_email_and_phone | manifest_resume_link | singleton)
+# NEXT FILE → pipeline/merge/merger.py (merge_group)
+# -----------------------------------------------------------------------------

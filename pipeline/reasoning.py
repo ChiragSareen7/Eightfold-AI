@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/reasoning.py
+# DOES: Builds plain-English field_reasoning strings for UI (years, phones, skills).
+# IN:   Conflict metadata from merge/scoring stages.
+# NEXT → pipeline/confidence/scoring.py (field_reasoning on CanonicalProfile)
+# =============================================================================
 """Plain-English reasoning strings for suppressed or downgraded field values."""
 
 from __future__ import annotations
@@ -78,3 +84,8 @@ def phone_reasoning_for_method(method: str, value: str) -> str:
 def _format_years(value: float) -> str:
     rounded = round(value, 1)
     return f"{rounded:g}"
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: human-readable reasoning strings
+# NEXT FILE → pipeline/confidence/scoring.py → CanonicalProfile.field_reasoning → UI cards
+# -----------------------------------------------------------------------------

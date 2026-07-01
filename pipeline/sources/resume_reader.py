@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/sources/resume_reader.py | STAGE: 1 — Sources (unstructured)
+# DOES: Extracts plain text from PDF, DOCX, TXT; rejects binary/corrupt files.
+# IN:   Resume files in uploads folder or test_data_v2/resumes/.
+# NEXT → pipeline/extract/resume_extractor.py (extract_fields)
+# =============================================================================
 """Resume file reader (Stage 1 — unstructured source). Text extraction only."""
 
 from __future__ import annotations
@@ -119,3 +125,8 @@ def _extract_txt(path: Path) -> str:
         except UnicodeDecodeError:
             continue
     raise ValueError(f"Could not decode text file with any supported encoding: {path}")
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: RawResumeRecord (source_id, file_path, raw_text) per file
+# NEXT FILE → pipeline/extract/resume_extractor.py (extract_fields)
+# -----------------------------------------------------------------------------

@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/normalize/skills.py | STAGE: 3 — Normalize (skills)
+# DOES: Canonicalizes skill names via alias dict + rapidfuzz (≥85% threshold).
+# IN:   Raw skill strings from CSV or resume.
+# NEXT → pipeline/normalize/__init__.py → merge/merger.py (_union_skills)
+# =============================================================================
 """Skill canonicalization via alias dictionary + fuzzy matching (rapidfuzz)."""
 
 from __future__ import annotations
@@ -115,3 +121,8 @@ def canonicalize_skill(raw: str) -> SkillResult:
         best_match=best_match,
         best_score=round(best_score, 1) if best_match else None,
     )
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: SkillResult (name, confidence, method, best_match, best_score)
+# NEXT FILE → pipeline/normalize/__init__.py → CanonicalProfile.skills[]
+# -----------------------------------------------------------------------------

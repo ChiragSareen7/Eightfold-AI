@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/sources/text_quality.py
+# DOES: Detects binary/garbage resume text and validates person-name shape.
+# IN:   raw_text strings from resume_reader / extractor.
+# NEXT → pipeline/sources/resume_reader.py, extract/resume_extractor.py, merge/entity_resolution.py
+# =============================================================================
 """Text/binary detection helpers for resume ingestion."""
 
 from __future__ import annotations
@@ -31,3 +37,8 @@ def looks_like_person_name(value: str | None) -> bool:
         return False
     allowed = sum(1 for c in name if c.isalpha() or c.isspace() or c in ".-'")
     return allowed / len(name) >= 0.85
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: boolean guards (is_probably_binary_text, looks_like_person_name)
+# NEXT FILE → resume_reader.py (skip corrupt) | resume_extractor.py | entity_resolution.py
+# -----------------------------------------------------------------------------

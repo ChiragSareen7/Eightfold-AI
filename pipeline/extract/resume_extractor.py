@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/extract/resume_extractor.py | STAGE: 2 — Extract
+# DOES: Regex extraction of name, email, phone, skills, experience, education from raw text.
+# IN:   RawResumeRecord.raw_text from resume_reader.
+# NEXT → pipeline/normalize/__init__.py (normalize_extracted_resume)
+# =============================================================================
 """Stage 2: Regex-first resume field extraction. LLM fallback on hold."""
 
 from __future__ import annotations
@@ -434,3 +440,8 @@ def _extract_explicit_years(text: str) -> float | None:
 #     Returns null on failure after one retry.
 #     """
 #     raise NotImplementedError("LLM fallback on hold — regex-only mode")
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: ExtractedResumeFields (full_name, emails, phones, skills, experience, …)
+# NEXT FILE → pipeline/normalize/__init__.py (normalize_extracted_resume)
+# -----------------------------------------------------------------------------

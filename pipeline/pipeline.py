@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/pipeline.py | STAGE: Orchestrator (coordinates stages 1→6)
+# DOES: build_canonical_profiles() runs ingest→merge→score; project_profiles() reshapes output.
+# IN:   csv_path, resumes_dir, optional config and source_priority.
+# NEXT → Called by cli.py and webapp/server.py; delegates to each stage module below.
+# =============================================================================
 """End-to-end pipeline orchestration."""
 
 from __future__ import annotations
@@ -117,3 +123,9 @@ def run_pipeline(
     profiles = build_canonical_profiles(csv_path, resumes_dir, source_priority)
     results, _, _ = project_profiles(profiles, config_path=config_path)
     return results
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: build_canonical_profiles → list[CanonicalProfile]
+#              run_pipeline → list[dict] projected JSON
+# NEXT FILE → sources/* (stage 1) → extract → normalize → merge → confidence → project/projector.py
+# -----------------------------------------------------------------------------

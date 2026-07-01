@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: webapp/server.py | HTTP API + static UI host
+# DOES: FastAPI app — /api/run, /api/reproject, /api/run/samples (test_data_v2), config presets.
+# IN:   Multipart uploads or cached canonical_profiles JSON from browser.
+# NEXT → pipeline/pipeline.py → webapp/static/index.html (JSON response)
+# =============================================================================
 """FastAPI server for the candidate transformer web UI."""
 
 from __future__ import annotations
@@ -234,3 +240,8 @@ def health():
 
 if __name__ == "__main__":
     uvicorn.run("webapp.server:app", host="0.0.0.0", port=8001, reload=True, app_dir=str(ROOT))
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: JSON { profiles, profile_meta, canonical_profiles, batch_summary }
+# NEXT FILE → webapp/static/index.html (render cards / raw JSON)
+# -----------------------------------------------------------------------------

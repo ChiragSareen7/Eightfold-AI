@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!--
+  FILE: webapp/static/index.html
+  DOES: Profile Merge Lab UI — uploads, Sample input (test_data_v2), config editor, source filters, dossier cards.
+  IN:   API JSON from webapp/server.py (/api/run, /api/reproject).
+  NEXT → (browser display) — user-facing end of the pipeline route.
+-->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -909,5 +915,9 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
+<!--
+  ROUTE OUT: POST /api/run | /api/run/samples | /api/reproject
+  NEXT FILE → webapp/server.py → pipeline/pipeline.py (stages 1–6)
+-->
 </body>
 </html>

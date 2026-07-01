@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/cli.py | STAGE: 8 — CLI entry
+# DOES: Command-line interface — reads --csv, --resumes, --config; writes projected JSON.
+# IN:   Disk paths from argparse.
+# NEXT → pipeline/pipeline.py (run_pipeline)
+# =============================================================================
 """Stage 8: CLI surface."""
 
 from __future__ import annotations
@@ -91,3 +97,8 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: projected profile JSON → stdout and/or --output file
+# NEXT FILE → pipeline/pipeline.py (full pipeline run)
+# -----------------------------------------------------------------------------

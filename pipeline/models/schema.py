@@ -1,3 +1,9 @@
+# =============================================================================
+# FILE: pipeline/models/schema.py
+# DOES: Fixed canonical key defaults; ensure_canonical_shape for consistent JSON keys.
+# IN:   canonical.py to_dict/from_dict, export.py.
+# NEXT → pipeline/models/canonical.py | pipeline/export.py
+# =============================================================================
 """Fixed canonical profile schema — every profile has the same keys."""
 
 from __future__ import annotations
@@ -103,3 +109,8 @@ def ensure_card_confidence_keys(data: dict[str, Any]) -> dict[str, Any]:
         if key not in data:
             data[key] = fc.get(field)
     return data
+
+# -----------------------------------------------------------------------------
+# ROUTE OUT: shaped dict with all canonical keys present
+# NEXT FILE → pipeline/models/canonical.py | pipeline/export.py
+# -----------------------------------------------------------------------------
